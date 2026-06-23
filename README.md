@@ -8,6 +8,10 @@
 </p>
 
 <p align="center">
+  <b><i>★ Let your Tesla always in control ★</i></b>
+</p>
+
+<p align="center">
   <img src="assets/app-preview.jpg" alt="Tesla Model S CAN Server App Preview" width="600">
 </p>
 
