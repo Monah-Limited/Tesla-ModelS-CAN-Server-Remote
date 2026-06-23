@@ -287,7 +287,7 @@ MIT — 随便用。只是别因为你的车出了意外来起诉我。这是个
 ## 📁 Project Structure
 
 ```
-tesla-local-control/
+Tesla-ModelS-CAN-Server-Remote/
 ├── app/
 │   ├── tesla_can.py          # CAN bus driver (socketcan interface)
 │   ├── tesla_models.py       # 39 Tesla models database + VIN decoder
