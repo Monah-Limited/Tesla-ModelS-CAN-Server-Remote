@@ -1,7 +1,7 @@
 # 🚗 Tesla CANRemote by OpenFrunk
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-unfinished-yellow" alt="unfinished">
+  <img src="https://img.shields.io/badge/status-beta-green" alt="beta">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-blue" alt="platform">
   <img src="https://img.shields.io/badge/languages-4-orange" alt="lang-4">
@@ -169,6 +169,55 @@ Simple, but users must install Tailscale and it conflicts with other VPNs.
 
 ---
 
+## 📱 PWA Frontend
+
+The app includes a mobile-first **Progressive Web App** (PWA) designed in **Xiaomi SU7 car app style**.
+
+### Layout
+
+```
+┌──────────────────────────────┐
+│  Model S 85D ▼     🔴未连接  │  ← Top Bar
+├──────────────────────────────┤
+│  ┌────────────────────────┐  │
+│  │  ═══ 蓝图特斯拉SVG ═══  │  │  ← Car Hero (230px)
+│  │  🔴 已锁                │  │
+│  └────────────────────────┘  │
+├──────────────────────────────┤
+│ ⭕ 75%  275km    25°C   P   │  ← Battery Bar
+├──────────────────────────────┤
+│        🔒 锁门               │  ← Lock Button
+├──────────────────────────────┤
+│  🚘 🚙 💡 📯  🪟 🪟 🔌 ❄️    │  ← Quick Controls
+├──────────────────────────────┤
+│  ⚡控制  📊状态  ⚙️设置      │  ← Bottom Dock
+└──────────────────────────────┘
+```
+
+### Features
+
+- **Xiaomi Design** — Dark theme `#1678FF` accent, glassmorphism cards, frosted blur
+- **Blueprint Car** — Engineering-style Tesla Model S SVG with grid, dimensions, annotations
+- **Battery Ring** — SVG circular gauge with color-coded SOC (green/amber/red)
+- **Range Estimate** — Converts SOC to estimated km (443 km @ 100%)
+- **Lock/Unlock** — One-tap toggle with haptic-style feedback
+- **16 Quick Controls** — Lock, unlock, frunk, trunk, flash, honk, windows, charge port, mirrors, interior lights, HVAC
+- **Add Vehicle** — VIN scan or manual config (model, trim, year, color, wheels, MCU, body, region)
+- **Multi-Vehicle** — Switch between saved vehicles, each with full config
+- **Diagnostics** — 6-card system health dashboard (CAN, 4G, BT, Tailscale, Internet)
+- **Settings** — Server URL, API token, Tailscale IP, DDNS domain, connection mode
+- **PWA** — Add to home screen, offline-capable, `manifest.json`
+
+### Screens
+
+| Tab | Content |
+|-----|---------|
+| ⚡ **Controls** | Car visual, battery, lock, quick action grid |
+| 📊 **Status** | 6-card diagnostics dashboard |
+| ⚙️ **Settings** | Server connection, API auth, tunnel config |
+
+---
+
 ## 🗄️ R2 Cloud Backup
 
 This project supports **Cloudflare R2** (S3-compatible) for backup and logging:
@@ -216,11 +265,13 @@ docker run -p 5000:5000 tesla-can
 │   ├── server.py          # Flask REST API (16 commands)
 │   ├── tesla_can.py       # CAN bus driver + status decoder
 │   ├── tesla_models.py    # 39 Tesla models + VIN decoder
-│   ├── static/            # PWA frontend
+│   ├── static/
+│   │   └── index.html     # 📱 PWA — Xiaomi-style UI (1200+ lines)
 │   └── tools/
 │       └── can_sniffer.py # CAN ID discovery
-└── network/
-    └── setup_4g_modem.sh  # 4G modem helper
+├── network/
+│   └── setup_4g_modem.sh  # 4G modem helper
+└── assets/                # App screenshots
 ```
 
 ---
