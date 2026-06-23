@@ -1,0 +1,18 @@
+[Unit]
+Description=Tesla Local Control — CAN bus for 2015 Model S 85D
+After=network.target can0.target
+
+[Service]
+Type=simple
+User=orangepi
+WorkingDirectory=/opt/tesla-control
+ExecStartPre=/sbin/ip link set can0 type can bitrate 125000
+ExecStartPre=/sbin/ip link set can0 up
+ExecStart=/opt/tesla-control/venv/bin/python server.py
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

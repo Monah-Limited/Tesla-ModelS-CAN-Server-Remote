@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
+<title>Tesla Local Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#000;--surface:#111;--surface2:#1a1a1a;--surface3:#242424;--onSurface:#fff;--onSurfaceDim:#888;--onSurfaceMuted:#555;--accent:#1a8cdb;--accentDim:rgba(26,140,219,.12);--green:#22c55e;--greenDim:rgba(34,197,94,.12);--red:#ef4444;--redDim:rgba(239,68,68,.12);--amber:#f59e0b;--radius:16px;--radiusSm:12px;--radiusXs:8px;--carBody:#1e1e2e;--carBodyLight:#2a2a3e;--glass:rgba(0,0,0,.5)}
+  html,body{height:100%;-webkit-font-smoothing:antialiased}
+  body{font-family:'Inter',-apple-system,'PingFang HK','Helvetica Neue',sans-serif;background:var(--bg);color:var(--onSurface);overflow-x:hidden}
+  ::-webkit-scrollbar{width:0;height:0}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px;padding-top:env(safe-area-inset-top,12px);padding-bottom:calc(env(safe-area-inset-bottom,16px)+80px)}
+
+  /* ── Status Bar ── */
+  .status-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;font-size:12px;font-weight:500;color:var(--onSurfaceDim)}
+  .status-bar .time{font-size:14px;font-weight:600;color:var(--onSurface)}
+  .status-bar .conn{display:flex;align-items:center;gap:4px}
+  .status-bar .conn-dot{width:6px;height:6px;border-radius:50%}
+  .status-bar .conn-dot.online{background:var(--green)}
+  .status-bar .conn-dot.offline{background:var(--red)}
+
+  /* ── Vehicle Switcher ── */
+  .vehicle-switcher{display:flex;align-items:center;gap:8px;padding:4px 0;margin-bottom:2px}
+  .vehicle-switcher .vs-select{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(255,255,255,.04);border-radius:100px;padding:6px 12px 6px 6px;cursor:pointer}
+  .vehicle-switcher .vs-select:active{background:var(--surface3)}
+  .vehicle-switcher .vs-icon{font-size:22px;width:30px;text-align:center}
+  .vehicle-switcher .vs-name{font-size:13px;font-weight:600;flex:1}
+  .vehicle-switcher .vs-arrow{font-size:12px;color:var(--onSurfaceMuted)}
+  .vehicle-switcher .vs-add{width:36px;height:36px;border-radius:50%;background:var(--surface2);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--onSurfaceDim)}
+  .vehicle-switcher .vs-add:active{background:var(--surface3)}
+
+  /* ── Dropdown ── */
+  .dropdown-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);display:none;animation:fadeIn .2s}
+  .dropdown-overlay.show{display:block}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .dropdown-sheet{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom,16px)+16px);z-index:201;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);max-height:70vh;overflow-y:auto}
+  .dropdown-sheet.show{transform:translateY(0)}
+  .dropdown-sheet .handle{width:36px;height:4px;border-radius:2px;background:var(--surface3);margin:0 auto 16px}
+  .dropdown-sheet .title{font-size:16px;font-weight:700;margin-bottom:12px}
+  .dropdown-item{display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:var(--radiusSm);cursor:pointer;transition:all .12s;margin-bottom:4px}
+  .dropdown-item:active{background:var(--surface2)}
+  .dropdown-item.active{background:var(--accentDim);border:1px solid rgba(26,140,219,.15)}
+  .dropdown-item .di-icon{font-size:28px;width:40px;text-align:center}
+  .dropdown-item .di-info{flex:1}
+  .dropdown-item .di-name{font-size:14px;font-weight:600}
+  .dropdown-item .di-sub{font-size:11px;color:var(--onSurfaceDim);margin-top:2px}
+  .dropdown-item .di-check{color:var(--accent);font-size:14px;font-weight:700}
+
+  /* ── Car Visual ── */
+  .car-stage{position:relative;height:210px;display:flex;align-items:center;justify-content:center;margin:0 -16px;overflow:hidden}
+  .car-stage .glow{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:200px;height:80px;border-radius:50%;background:radial-gradient(ellipse,rgba(26,140,219,.08)0%,transparent 70%);transition:all .6s ease}
+  .car-stage .glow.unlocked{background:radial-gradient(ellipse,rgba(34,197,94,.12)0%,transparent 70%)}
+  .car-stage .glow.locked{background:radial-gradient(ellipse,rgba(239,68,68,.08)0%,transparent 70%)}
+  .car-stage .glow.climate{background:radial-gradient(ellipse,rgba(26,140,219,.15)0%,transparent 70%)}
+  .car-stage .glow.charging{background:radial-gradient(ellipse,rgba(26,140,219,.12)0%,transparent 60%)}
+
+  .car-svg-wrap{position:relative;width:300px;height:170px;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .car-svg-wrap.shake{animation:carShake .3s}
+  @keyframes carShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+  .car-svg-wrap.frunk-open{transform:translateY(-4px)}
+  .car-svg-wrap.trunk-open{transform:translateY(-3px)}
+  .car-svg-wrap.honk{animation:carHonk .15s 3}
+  @keyframes carHonk{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+
+  .car-part{transition:all .4s cubic-bezier(.4,0,.2,1)}
+  .car-part.hidden{opacity:0;pointer-events:none}
+
+  .door-lf{transform-origin:20px 58px;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .door-rf{transform-origin:40px 58px;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .door-lr{transform-origin:18px 60px;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .door-rr{transform-origin:38px 60px;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .door-open-lf{transform:rotate(-12deg)}
+  .door-open-rf{transform:rotate(12deg)}
+  .door-open-lr{transform:rotate(-10deg)}
+  .door-open-rr{transform:rotate(10deg)}
+
+  .frunk{transform-origin:80px 30px;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+  .frunk-open .frunk{transform:rotateX(-40deg)translateY(-6px)}
+  .trunk{transform-origin:155px 28px;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+  .trunk-open .trunk{transform:rotateX(-35deg)translateY(-5px)}
+
+  .headlight-on{opacity:0;transition:opacity .15s}
+  .lights-on .headlight-on{opacity:1}
+  .headlight-flash{opacity:0}
+  .lights-flash .headlight-flash{opacity:1;animation:flashBlink .1s 4}
+  @keyframes flashBlink{0%,100%{opacity:0}50%{opacity:1}}
+  .window-glass{transition:all .4s cubic-bezier(.4,0,.2,1)}
+  .windows-vent .window-glass{transform:translateY(4px);opacity:.6}
+  .charge-port{opacity:0;transition:opacity .3s}
+  .charging .charge-port{opacity:1}
+
+  .car-state-badge{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;color:var(--onSurfaceDim);display:flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.06);z-index:2}
+  .car-state-badge .state-dot{width:5px;height:5px;border-radius:50%}
+
+  /* ── Range Strip ── */
+  .range-strip{display:flex;align-items:center;gap:16px;padding:6px 4px;justify-content:center}
+  .range-item{text-align:center}
+  .range-item .num{font-size:20px;font-weight:700;letter-spacing:-.5px}
+  .range-item .num.green{color:var(--green)}
+  .range-item .num.amber{color:var(--amber)}
+  .range-item .num.red{color:var(--red)}
+  .range-item .label{font-size:11px;font-weight:500;color:var(--onSurfaceMuted);margin-top:1px}
+  .range-divider{width:1px;height:28px;background:rgba(255,255,255,.08)}
+
+  /* ── Lock ── */
+  .lock-section{padding:4px 0 6px}
+  .lock-btn{width:100%;padding:18px;border-radius:var(--radius);border:none;background:var(--surface2);font-family:inherit;font-size:17px;font-weight:600;color:var(--onSurface);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden}
+  .lock-btn.locked{background:var(--redDim);color:var(--red)}
+  .lock-btn.unlocked{background:var(--greenDim);color:var(--green)}
+  .lock-btn.loading{opacity:.6;pointer-events:none}
+  .lock-btn .icon{font-size:24px;line-height:1}
+  .lock-btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.1);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none}
+  @keyframes rippleAnim{to{transform:scale(4);opacity:0}}
+
+  .section-label{font-size:13px;font-weight:600;color:var(--onSurface);padding:14px 4px 8px}
+  .quick-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+  .qc{background:var(--surface2);border:1px solid rgba(255,255,255,.04);border-radius:var(--radiusSm);padding:12px 4px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none}
+  .qc:active{background:var(--surface3);transform:scale(.94)}
+  .qc .icon{font-size:20px;display:block;margin-bottom:3px}
+  .qc .label{font-size:10px;font-weight:500;color:var(--onSurfaceDim);letter-spacing:.2px}
+
+  /* ── Vehicle List (dropdown) ── */
+  .v-item{margin-bottom:4px}
+  .v-item .v-info{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radiusSm);cursor:pointer}
+  .v-item .v-info:active{background:var(--surface2)}
+  .v-item .v-icon{font-size:26px;width:36px;text-align:center}
+  .v-item .v-name{font-size:14px;font-weight:600}
+  .v-item .v-sub{font-size:11px;color:var(--onSurfaceDim);margin-top:1px}
+  .v-item .v-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--accentDim);color:var(--accent);margin-left:auto}
+  .v-item .v-del{opacity:0;transition:opacity .15s;font-size:16px;cursor:pointer;color:var(--onSurfaceMuted);padding:4px}
+  .v-item:hover .v-del,.v-item .v-del.show{opacity:1}
+
+  /* ── Add Vehicle Form ── */
+  .add-form{background:var(--surface2);border-radius:var(--radius);padding:20px;margin-top:12px}
+  .add-form .af-title{font-size:15px;font-weight:700;margin-bottom:16px}
+  .add-form label{font-size:11px;font-weight:500;color:var(--onSurfaceDim);display:block;margin-bottom:4px;margin-top:12px}
+  .add-form label:first-of-type{margin-top:0}
+  .add-form input,.add-form select{width:100%;background:var(--surface3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:12px 14px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit}
+  .add-form input:focus{border-color:var(--accent)}
+  .add-form .vin-row{display:flex;gap:8px}
+  .add-form .vin-row input{flex:1;font-family:'SF Mono','Menlo',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+  .add-form .vin-row button{background:var(--accent);border:none;border-radius:var(--radiusXs);padding:0 16px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .add-form .vin-row button:active{opacity:.8}
+  .add-form .vin-result{padding:10px;border-radius:var(--radiusXs);font-size:12px;line-height:1.6;display:none;margin-top:8px}
+  .add-form .vin-result.show{display:block}
+  .add-form .vin-result.success{background:var(--greenDim);border:1px solid rgba(34,197,94,.15)}
+  .add-form .vin-result.error{background:var(--redDim);border:1px solid rgba(239,68,68,.15)}
+  .add-form .color-picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .add-form .color-chip{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .12s}
+  .add-form .color-chip.active{border-color:var(--onSurface);transform:scale(1.1)}
+  .add-form .btn-save{width:100%;padding:14px;border-radius:var(--radiusSm);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px}
+  .add-form .btn-save:active{opacity:.8}
+  .add-form .btn-cancel{width:100%;padding:10px;border:none;background:none;color:var(--onSurfaceDim);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px}
+
+  /* ── Settings ── */
+  .settings-group{margin-top:8px}
+  .settings-group label{font-size:11px;color:var(--onSurfaceMuted);display:block;margin-bottom:4px;margin-top:10px}
+  .settings-group input{width:100%;background:var(--surface2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:12px 14px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit;margin-bottom:4px}
+  .settings-group input:focus{border-color:var(--accent)}
+  .mode-selector{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+  .mode-chip{padding:10px;border-radius:var(--radiusXs);background:var(--surface2);border:1px solid rgba(255,255,255,.04);text-align:center;font-size:11px;font-weight:500;color:var(--onSurfaceDim);cursor:pointer;transition:all .15s}
+  .mode-chip.active{background:var(--accentDim);border-color:var(--accent);color:var(--accent)}
+
+  /* ── Diagnostics Dashboard ── */
+  .diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+  .diag-card{background:var(--surface2);border:1px solid rgba(255,255,255,.04);border-radius:var(--radiusSm);padding:14px;position:relative;overflow:hidden}
+  .diag-card .dc-row{display:flex;align-items:center;justify-content:space-between}
+  .diag-card .dc-icon{font-size:18px;width:28px}
+  .diag-card .dc-name{font-size:11px;font-weight:600;color:var(--onSurfaceDim)}
+  .diag-card .dc-indicator{width:10px;height:10px;border-radius:50%;transition:all .3s}
+  .diag-card .dc-indicator.ok{background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.3)}
+  .diag-card .dc-indicator.warn{background:var(--amber);box-shadow:0 0 8px rgba(245,158,11,.3)}
+  .diag-card .dc-indicator.error{background:var(--red);box-shadow:0 0 8px rgba(239,68,68,.3)}
+  .diag-card .dc-indicator.offline{background:var(--onSurfaceMuted)}
+  .diag-card .dc-status{font-size:10px;color:var(--onSurfaceMuted);margin-top:4px;padding-left:28px;word-break:break-all;line-height:1.4}
+  .diag-card .dc-pulse{position:absolute;width:10px;height:10px;border-radius:50%;top:14px;right:14px;animation:pulse 2s infinite}
+  .diag-card .dc-pulse.ok{background:var(--green)}
+  .diag-card .dc-pulse.warn{background:var(--amber)}
+  .diag-card .dc-pulse.error{background:var(--red)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .diag-card .dc-pulse.ok{color:var(--green)}.diag-card .dc-pulse.warn{color:var(--amber)}.diag-card .dc-pulse.error{color:var(--red)}
+
+  .diag-summary{display:flex;gap:6px;justify-content:center;padding:8px 0 4px}
+  .diag-summary .ds-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:var(--onSurfaceMuted);padding:4px 10px;border-radius:20px;background:var(--surface2)}
+  .diag-summary .ds-item .ds-dot{width:5px;height:5px;border-radius:50%}
+  .diag-summary .ds-item .ds-dot.ok{background:var(--green)}
+  .diag-summary .ds-item .ds-dot.warn{background:var(--amber)}
+  .diag-summary .ds-item .ds-dot.error{background:var(--red)}
+
+  .bottom-dock{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;padding:8px 16px calc(env(safe-area-inset-bottom,8px)+8px);background:rgba(0,0,0,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);z-index:100}
+  .dock-grid{display:flex;justify-content:space-around;align-items:center}
+  .dock-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;cursor:pointer;border:none;background:none;color:var(--onSurfaceMuted);font-family:inherit;font-size:10px;font-weight:500;transition:color .15s}
+  .dock-item .icon{font-size:20px}
+  .dock-item.active{color:var(--onSurface)}
+
+  .panel{display:none;animation:fadeUp .25s ease}
+  .panel.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%)translateY(60px);background:var(--surface3);padding:10px 20px;border-radius:100px;font-size:13px;font-weight:500;color:var(--onSurface);opacity:0;transition:all .3s;pointer-events:none;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%)translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="status-bar">
+    <span class="time" id="clockTime">--:--</span>
+    <span class="conn"><span class="conn-dot offline" id="connDot"></span><span id="connLabel">未连接</span></span>
+  </div>
+
+  <!-- Vehicle Switcher -->
+  <div class="vehicle-switcher">
+    <div class="vs-select" onclick="showVehiclePicker()">
+      <span class="vs-icon" id="vsIcon">🚗</span>
+      <span class="vs-name" id="vsName">Model S 85D</span>
+      <span class="vs-arrow">▼</span>
+    </div>
+    <div class="vs-add" onclick="showAddVehicle()">+</div>
+  </div>
+
+  <!-- Controls Panel -->
+  <div class="panel active" id="panel-controls">
+    <div class="car-stage" id="carStage">
+      <div class="glow" id="carGlow"></div>
+      <div class="car-svg-wrap" id="carWrap">
+        <svg viewBox="0 0 300 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Ground shadow -->
+          <ellipse cx="150" cy="155" rx="130" ry="6" fill="rgba(255,255,255,.015)" class="ground-shadow"/>
+
+          <!-- ══ STATE: CHARGING ══ -->
+          <g class="state-charging" style="display:none">
+            <!-- Charge port glow -->
+            <circle cx="168" cy="48" r="12" fill="rgba(26,140,219,.08)"/>
+            <circle cx="168" cy="48" r="6" fill="rgba(26,140,219,.12)"/>
+            <!-- Cable -->
+            <path d="M168 38 C168 24 176 18 188 16 C194 14 202 12 208 6" stroke="rgba(255,255,255,.15)" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Plug -->
+            <rect x="204" y="2" width="8" height="6" rx="1" fill="rgba(255,255,255,.12)"/>
+            <rect x="206" y="0" width="4" height="2" rx="1" fill="var(--accent)"/>
+            <!-- Bolt icon -->
+            <text x="168" y="52" text-anchor="middle" font-size="14" fill="var(--accent)" opacity=".7">⚡</text>
+          </g>
+
+          <!-- ══ STATE: FRUNK OPEN ══ -->
+          <g class="state-frunk" style="display:none">
+            <!-- Raised hood silhouette -->
+            <path d="M8 94 C8 72 22 52 42 46 L48 44 L48 72 C32 74 20 84 14 98 L8 94Z" fill="#2a2a3e" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
+            <!-- Gap shadow underneath -->
+            <path d="M42 68 C50 64 62 60 78 58 L78 44 C62 46 50 50 42 54 L42 68Z" fill="rgba(0,0,0,.3)"/>
+            <!-- Support strut -->
+            <line x1="48" y1="68" x2="58" y2="54" stroke="rgba(255,255,255,.06)" stroke-width=".8"/>
+            <!-- Warning indicator -->
+            <text x="45" y="88" text-anchor="middle" font-size="10" fill="var(--amber)" opacity=".8">▲ 前备箱</text>
+          </g>
+
+          <!-- ══ STATE: TRUNK OPEN ══ -->
+          <g class="state-trunk" style="display:none">
+            <!-- Raised hatch -->
+            <path d="M228 94 C232 72 220 52 205 46 L198 44 L198 72 C214 74 224 84 230 98 L228 94Z" fill="#2a2a3e" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
+            <path d="M198 68 C190 64 178 60 162 58 L162 44 C178 46 190 50 198 54 L198 68Z" fill="rgba(0,0,0,.3)"/>
+            <line x1="198" y1="68" x2="188" y2="54" stroke="rgba(255,255,255,.06)" stroke-width=".8"/>
+            <text x="195" y="88" text-anchor="middle" font-size="10" fill="var(--amber)" opacity=".8">▲ 后备箱</text>
+          </g>
+
+          <!-- ══ STATE: LIGHTS ON ══ -->
+          <g class="state-lights" style="display:none">
+            <!-- Low beam -->
+            <ellipse cx="0" cy="96" rx="20" ry="6" fill="rgba(200,220,255,.06)"/>
+            <ellipse cx="-12" cy="98" rx="14" ry="4" fill="rgba(200,220,255,.04)"/>
+            <!-- High beam -->
+            <ellipse cx="4" cy="94" rx="24" ry="4" fill="rgba(200,220,255,.03)"/>
+          </g>
+
+          <!-- ══ STATE: FLASH ══ -->
+          <g class="state-flash" style="display:none">
+            <ellipse cx="6" cy="96" rx="16" ry="10" fill="rgba(255,255,255,.35)"/>
+            <ellipse cx="-10" cy="96" rx="18" ry="8" fill="rgba(255,255,255,.15)"/>
+            <!-- Glare on ground -->
+            <ellipse cx="20" cy="152" rx="30" ry="8" fill="rgba(255,255,255,.06)"/>
+          </g>
+
+          <!-- ══ BASE CAR BODY (always visible) ══ -->
+          <g class="car-base">
+            <!-- Main body -->
+            <path d="M40 132 C15 130 8 112 8 96 C8 80 15 66 28 60 L35 56 C42 46 55 36 75 32 L105 28 L135 28 L165 32 C185 36 198 46 205 56 L212 60 C225 66 232 80 232 96 C232 112 225 130 200 132 L190 136 C182 142 170 146 150 147 L90 147 C70 146 58 142 50 136 L40 132Z" fill="var(--carBody)" stroke="rgba(255,255,255,.03)" stroke-width=".6"/>
+            <!-- Body highlight -->
+            <path d="M48 128 C20 126 12 110 12 96 C12 82 20 68 32 62 L38 58 C44 50 56 40 72 36 L50 60 C38 66 32 78 32 96 C32 110 38 122 48 128Z" fill="rgba(255,255,255,.02)"/>
+            <!-- Roof line -->
+            <path d="M58 56 C64 42 78 32 100 28 L120 27 C142 28 158 34 168 46" stroke="rgba(255,255,255,.04)" stroke-width=".4" fill="none"/>
+
+            <!-- Windshield -->
+            <path d="M58 56 C64 42 78 32 98 28 L108 28 L108 50 C90 52 74 58 62 68 L58 56Z" fill="var(--glass)" opacity=".4"/>
+            <!-- Rear window -->
+            <path d="M180 46 C170 36 156 30 140 28 L140 50 C154 50 168 56 178 64 L180 46Z" fill="var(--glass)" opacity=".3"/>
+
+            <!-- DOOR SEAMS (visible when unlocked) -->
+            <g class="door-seams" style="display:none">
+              <line x1="108" y1="32" x2="108" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
+              <line x1="144" y1="32" x2="144" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
+              <line x1="180" y1="32" x2="180" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
+            </g>
+
+            <!-- Door panels (filled) -->
+            <path d="M108 32 L108 100 L144 100 L144 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <path d="M144 32 L144 100 L180 100 L180 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <path d="M55 34 L55 104 L105 104 L105 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <path d="M180 32 L180 104 L230 104 L230 34" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+
+            <!-- Door handles -->
+            <rect x="112" y="62" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+            <rect x="158" y="62" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+            <rect x="74" y="64" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+            <rect x="200" y="64" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
+
+            <!-- Windows -->
+            <path d="M105 32 L105 46 L148 46 L148 32" fill="rgba(100,180,255,.05)" opacity=".3"/>
+            <path d="M55 36 L55 46 L100 46 L100 32" fill="rgba(100,180,255,.03)" opacity=".2"/>
+
+            <!-- ══ Frunk (default closed) ══ -->
+            <path d="M8 94 C8 78 18 64 32 58 L42 54 L42 88 C28 90 18 98 12 108 L8 94Z" fill="var(--carBody)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <path d="M42 52 C50 48 62 42 78 40" stroke="rgba(255,255,255,.04)" stroke-width=".3" fill="none"/>
+
+            <!-- ══ Trunk (default closed) ══ -->
+            <path d="M228 94 C232 78 225 64 212 58 L205 54 L202 88 C216 90 224 98 230 108 L228 94Z" fill="var(--carBody)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <path d="M205 52 C198 48 188 42 172 40" stroke="rgba(255,255,255,.04)" stroke-width=".3" fill="none"/>
+
+            <!-- ══ Headlights (normal) ══ -->
+            <ellipse cx="16" cy="94" rx="6" ry="3.5" fill="rgba(255,255,255,.12)"/>
+            <!-- Tail lights -->
+            <ellipse cx="232" cy="96" rx="4" ry="3" fill="rgba(200,50,0,.15)"/>
+
+            <!-- ══ Wheels ══ -->
+            <g><ellipse cx="78" cy="138" rx="20" ry="12" fill="#0a0a0a" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
+            <ellipse cx="78" cy="138" rx="12" ry="7" fill="#1a1a1a" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <ellipse cx="78" cy="138" rx="3" ry="2" fill="rgba(255,255,255,.02)"/>
+            <line x1="78" y1="131" x2="78" y2="145" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
+            <line x1="71" y1="134" x2="85" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
+            <line x1="85" y1="134" x2="71" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/></g>
+            <g><ellipse cx="212" cy="138" rx="20" ry="12" fill="#0a0a0a" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
+            <ellipse cx="212" cy="138" rx="12" ry="7" fill="#1a1a1a" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
+            <ellipse cx="212" cy="138" rx="3" ry="2" fill="rgba(255,255,255,.02)"/>
+            <line x1="212" y1="131" x2="212" y2="145" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
+            <line x1="205" y1="134" x2="219" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
+            <line x1="219" y1="134" x2="205" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/></g>
+          </g>
+        </svg>
+      </div>
+      <div class="car-state-badge"><span class="state-dot" id="stateDot" style="background:var(--onSurfaceMuted)"></span><span id="stateLabel">就绪</span></div>
+    </div>
+
+    <div class="range-strip">
+      <div class="range-item"><div class="num green" id="batteryPct">--</div><div class="label">电量 %</div></div>
+      <div class="range-divider"></div>
+      <div class="range-item"><div class="num" id="rangeKm">--</div><div class="label">续航 km</div></div>
+      <div class="range-divider"></div>
+      <div class="range-item"><div class="num" id="vinShort">5YJ…</div><div class="label" id="vinYearLabel">2015</div></div>
+    </div>
+
+    <div class="lock-section">
+      <div id="lockBtn" class="lock-btn locked" onclick="toggleLock(event)"><span class="icon">🔒</span><span id="lockLabel">锁门</span></div>
+    </div>
+
+    <div class="section-label">快捷控制</div>
+    <div class="quick-grid">
+      <div class="qc" onclick="sendCmd('lock')"><span class="icon">🔒</span><span class="label">锁门</span></div>
+      <div class="qc" onclick="sendCmd('unlock')"><span class="icon">🔓</span><span class="label">开门</span></div>
+      <div class="qc" onclick="sendCmd('frunk')"><span class="icon">🟢</span><span class="label">前备箱</span></div>
+      <div class="qc" onclick="sendCmd('trunk')"><span class="icon">🟤</span><span class="label">后备箱</span></div>
+    </div>
+    <div class="quick-grid" style="margin-top:8px">
+      <div class="qc" onclick="sendCmd('flash_lights')"><span class="icon">💡</span><span class="label">闪灯</span></div>
+      <div class="qc" onclick="sendCmd('honk')"><span class="icon">📯</span><span class="label">鸣笛</span></div>
+      <div class="qc" onclick="sendCmd('windows_vent')"><span class="icon">🪟</span><span class="label">通风</span></div>
+      <div class="qc" onclick="sendCmd('windows_close')"><span class="icon">🔒🪟</span><span class="label">关窗</span></div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="panel" id="panel-settings">
+    <div class="section-label" style="padding-top:8px">⚙️ 设置</div>
+    <div class="section-label" style="font-size:11px;padding:8px 4px 4px;color:var(--onSurfaceMuted)">连接方式</div>
+    <div class="mode-selector" id="modeSelector">
+      <div class="mode-chip active" data-mode="tailscale">🔗 Tailscale</div>
+      <div class="mode-chip" data-mode="ddns">🌍 DDNS</div>
+      <div class="mode-chip" data-mode="wifi">🏠 WiFi</div>
+      <div class="mode-chip" data-mode="ble">📶 蓝牙</div>
+    </div>
+    <div class="settings-group">
+      <label>连接地址</label><input type="url" id="serverUrl" placeholder="http://100.x.x.x:5000">
+      <label>API Token</label><input type="password" id="apiToken" placeholder="安全令牌（可选）">
+      <label>Tailscale IP</label><input type="text" id="tsIp" placeholder="100.x.x.x">
+      <label>DDNS 域名</label><input type="text" id="ddnsDomain" placeholder="mytesla.duckdns.org">
+    </div>
+  </div>
+
+  <!-- Diagnostics Panel -->
+  <div class="panel" id="panel-diagnostics">
+    <div class="section-label" style="padding-top:8px">📊 系统状态</div>
+    <div class="diag-summary" id="diagSummary"></div>
+    <div class="diag-grid" id="diagGrid">
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🔌</span><span class="dc-name">CAN 总线</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">📡</span><span class="dc-name">4G/5G 网络</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">📶</span><span class="dc-name">手机蓝牙</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🌐</span><span class="dc-name">互联网</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🔗</span><span class="dc-name">Tailscale</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🖥️</span><span class="dc-name">Orange Pi</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button onclick="runDiagnostics()" style="background:var(--surface2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:8px 20px;color:var(--onSurfaceDim);font-size:11px;cursor:pointer;font-family:inherit">🔄 重新检测</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY: Vehicle Picker ═══ -->
+<div class="dropdown-overlay" id="pickerOverlay" onclick="hideVehiclePicker()"></div>
+<div class="dropdown-sheet" id="pickerSheet">
+  <div class="handle"></div>
+  <div class="title">选择车辆</div>
+  <div id="vehicleList"></div>
+  <div style="margin-top:16px;text-align:center">
+    <button onclick="hideVehiclePicker();showAddVehicle()" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">+ 添加新车辆</button>
+  </div>
+</div>
+
+<!-- ═══ OVERLAY: Add Vehicle ═══ -->
+<div class="dropdown-overlay" id="addOverlay" onclick="hideAddVehicle()"></div>
+<div class="dropdown-sheet" id="addSheet" style="max-height:85vh;overflow-y:auto">
+  <div class="handle"></div>
+  <div class="add-form">
+    <div class="af-title">➕ 添加车辆</div>
+
+    <label>车架号 (VIN) *</label>
+    <div class="vin-row">
+      <input type="text" id="newVin" placeholder="5YJ..." maxlength="17">
+      <button onclick="decodeNewVin()">识别</button>
+    </div>
+    <div class="vin-result" id="newVinResult"></div>
+
+    <label>车辆昵称</label>
+    <input type="text" id="newNick" placeholder="我的 85D">
+
+    <label>颜色</label>
+    <div class="color-picker" id="newColorPicker"></div>
+
+    <label>备注 (可选)</label>
+    <input type="text" id="newNote" placeholder="香港车 / 改色灰色">
+
+    <button class="btn-save" onclick="saveNewVehicle()">✅ 确认绑定</button>
+    <button class="btn-cancel" onclick="hideAddVehicle()">取消</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Bottom Dock -->
+<div class="bottom-dock">
+  <div class="dock-grid">
+    <button class="dock-item active" onclick="navigateTo('controls')"><span class="icon">⚡</span>控制</button>
+    <button class="dock-item" onclick="navigateTo('diagnostics')"><span class="icon">📊</span>状态</button>
+    <button class="dock-item" onclick="navigateTo('settings')"><span class="icon">⚙️</span>设置</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  VEHICLE DATABASE
+// ══════════════════════════════════════════════════════════════════
+
+const COLORS = [
+  {id:'pearl_white',cn:'珍珠白',hex:'#f5f5f0'},{id:'solid_black',cn:'纯黑',hex:'#1a1a1a'},
+  {id:'obsidian_black',cn:'曜石黑',hex:'#282828'},{id:'midnight_silver',cn:'午夜银',hex:'#6b6b6b'},
+  {id:'deep_blue',cn:'深海蓝',hex:'#1a2b5c'},{id:'red_multicoat',cn:'中国红',hex:'#c41e2a'},
+  {id:'signature_red',cn:'签名红',hex:'#b81a24'},{id:'silver',cn:'银色',hex:'#c0c0c0'},
+  {id:'stealth_grey',cn:'隐形灰',hex:'#4a4a52'},{id:'ultra_red',cn:'超红',hex:'#d42e3a'},
+];
+
+const MODEL_ICONS = {'S':'🚗','X':'🚙','3':'🚘','Y':'🚙','C':'🛻','R':'🏎️'};
+
+let vehicles = [];
+let activeVehicleId = null;
+
+/* ── Load from localStorage ── */
+function loadVehicles() {
+  try {
+    const data = localStorage.getItem('tsl_vehicles_v2');
+    vehicles = data ? JSON.parse(data) : [];
+  } catch(e) { vehicles = []; }
+
+  // Default vehicle if none saved
+  if (vehicles.length === 0) {
+    vehicles.push({
+      id: 'v_default',
+      nick: 'Model S 85D',
+      vin: '',
+      modelName: 'Model S 85D',
+      year: 2015,
+      battery: '85kWh',
+      range: 443,
+      color: 'midnight_silver',
+      note: '香港 · 原白改灰',
+      icon: '🚗',
+      createdAt: Date.now(),
+    });
+    saveVehicles();
+  }
+
+  // Set active
+  activeVehicleId = localStorage.getItem('tsl_active_vehicle') || vehicles[0].id;
+  if (!vehicles.find(v => v.id === activeVehicleId)) {
+    activeVehicleId = vehicles[0].id;
+  }
+}
+
+function saveVehicles() {
+  localStorage.setItem('tsl_vehicles_v2', JSON.stringify(vehicles));
+  localStorage.setItem('tsl_active_vehicle', activeVehicleId);
+}
+
+/* ── Get active vehicle ── */
+function activeVehicle() {
+  return vehicles.find(v => v.id === activeVehicleId) || vehicles[0];
+}
+
+/* ── Render vehicle picker list ── */
+function renderVehiclePicker() {
+  const list = document.getElementById('vehicleList');
+  if (vehicles.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--onSurfaceMuted);font-size:13px">暂无车辆</div>';
+    return;
+  }
+  list.innerHTML = vehicles.map(v => {
+    const isActive = v.id === activeVehicleId;
+    return `<div class="v-item">
+      <div class="v-info" onclick="selectVehicle('${v.id}')" style="${isActive ? 'background:var(--accentDim);border-radius:var(--radiusSm)' : ''}">
+        <span class="v-icon">${v.icon || '🚗'}</span>
+        <div style="flex:1">
+          <div class="v-name">${v.nick}</div>
+          <div class="v-sub">${v.modelName || 'Tesla'} · ${v.vin ? v.vin.slice(0,8)+'…' : '无 VIN'}</div>
+        </div>
+        ${isActive ? '<span class="v-badge">当前</span>' : ''}
+        <span class="v-del ${isActive?'show':''}" onclick="event.stopPropagation();deleteVehicle('${v.id}')">✕</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Select vehicle ── */
+function selectVehicle(id) {
+  activeVehicleId = id;
+  saveVehicles();
+  hideVehiclePicker();
+  updateVehicleUI();
+  updateCarVisual();
+  pollStatus();
+}
+
+/* ── Delete vehicle ── */
+function deleteVehicle(id) {
+  if (vehicles.length <= 1) {
+    toast('至少保留一辆车', 'error');
+    return;
+  }
+  vehicles = vehicles.filter(v => v.id !== id);
+  if (activeVehicleId === id) {
+    activeVehicleId = vehicles[0].id;
+  }
+  saveVehicles();
+  renderVehiclePicker();
+  updateVehicleUI();
+  updateCarVisual();
+  toast('🗑️ 已删除');
+}
+
+/* ── Update main UI for active vehicle ── */
+function updateVehicleUI() {
+  const v = activeVehicle();
+  if (!v) return;
+
+  document.getElementById('vsIcon').textContent = v.icon || '🚗';
+  document.getElementById('vsName').textContent = v.nick;
+  document.getElementById('vinShort').textContent = v.vin ? v.vin.slice(0,5)+'…' : '—';
+  document.getElementById('vinYearLabel').textContent = v.year || '—';
+  document.getElementById('carModelDisplay')?.remove();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   ADD VEHICLE
+══════════════════════════════════════════════════════════════════ */
+
+function showAddVehicle() {
+  document.getElementById('addOverlay').classList.add('show');
+  document.getElementById('addSheet').classList.add('show');
+  document.getElementById('newVin').value = '';
+  document.getElementById('newNick').value = '';
+  document.getElementById('newNote').value = '';
+  document.getElementById('newVinResult').className = 'vin-result';
+  document.getElementById('newVinResult').style.display = 'none';
+  renderNewColorPicker();
+}
+
+function hideAddVehicle() {
+  document.getElementById('addOverlay').classList.remove('show');
+  document.getElementById('addSheet').classList.remove('show');
+}
+
+function renderNewColorPicker() {
+  const container = document.getElementById('newColorPicker');
+  container.innerHTML = COLORS.map(c =>
+    `<div class="color-chip ${c.id==='midnight_silver'?'active':''}" style="background:${c.hex}" onclick="selectNewColor('${c.id}')" title="${c.cn}"></div>`
+  ).join('');
+}
+
+let _selectedNewColor = 'midnight_silver';
+function selectNewColor(id) {
+  _selectedNewColor = id;
+  document.querySelectorAll('#newColorPicker .color-chip').forEach(c => c.classList.remove('active'));
+  document.querySelector(`#newColorPicker .color-chip[style*="${COLORS.find(x=>x.id===id).hex}"]`).classList.add('active');
+}
+
+async function decodeNewVin() {
+  const vin = document.getElementById('newVin').value.trim().toUpperCase();
+  const rd = document.getElementById('newVinResult');
+  if (vin.length !== 17) {
+    rd.className = 'vin-result error show'; rd.style.display = 'block';
+    rd.textContent = '⚠️ VIN 必须是 17 位';
+    return;
+  }
+  // Auto-fill nick
+  if (!document.getElementById('newNick').value) {
+    document.getElementById('newNick').value = 'My Tesla';
+  }
+  // Try server decode
+  const base = getActiveUrl();
+  if (base && !base.includes('x.x')) {
+    try {
+      const r = await fetch(base+'/api/decode-vin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vin})});
+      const d = await r.json();
+      if (d.model) {
+        rd.className = 'vin-result success show'; rd.style.display = 'block';
+        rd.innerHTML = `✅ <strong>${d.model.name}</strong> · ${d.year||'?'}<br>📍 ${d.origin?.country||'?'} · ${d.origin?.plant||'?'}<br>🔋 ${d.model.battery||'?'} · ⛰️ ${d.model.range_km||'?'}km`;
+        if (!document.getElementById('newNick').value || document.getElementById('newNick').value === 'My Tesla') {
+          document.getElementById('newNick').value = d.model.name;
+        }
+        return;
+      }
+    } catch(e) {}
+  }
+  // Local guess
+  const guess = vin.startsWith('5YJSB7') ? 'Model S 85D' : vin.startsWith('5YJ') ? 'Tesla (USA)' : vin.startsWith('LRW') ? 'Tesla (China)' : 'Tesla';
+  rd.className = 'vin-result success show'; rd.style.display = 'block';
+  rd.textContent = `🔍 ${guess}`;
+  if (!document.getElementById('newNick').value || document.getElementById('newNick').value === 'My Tesla') {
+    document.getElementById('newNick').value = guess;
+  }
+}
+
+function saveNewVehicle() {
+  const vin = document.getElementById('newVin').value.trim().toUpperCase();
+  const nick = document.getElementById('newNick').value.trim();
+  const note = document.getElementById('newNote').value.trim();
+
+  if (!vin || vin.length !== 17) {
+    toast('⚠️ 请输入有效的 17 位 VIN', 'error');
+    return;
+  }
+
+  if (!nick) {
+    toast('⚠️ 请填写车辆昵称', 'error');
+    return;
+  }
+
+  // Guess model info
+  let modelName = 'Tesla';
+  let year = null;
+  let battery = '';
+  let range = null;
+  let icon = '🚗';
+
+  if (vin.startsWith('5YJSB7') || vin.startsWith('5YJSA7')) {
+    modelName = 'Model S 85D'; icon = '🚗'; battery = '85kWh'; range = 443;
+    const yc = vin[9];
+    const years = {D:2013,E:2014,F:2015,G:2016,H:2017};
+    year = years[yc] || 2015;
+  } else if (vin.startsWith('5YJSA4')) {
+    modelName = 'Model S 85'; icon = '🚗'; battery = '85kWh'; range = 426;
+  } else if (vin.startsWith('5YJSA1') || vin.startsWith('5YJSA3')) {
+    modelName = 'Model S 60'; icon = '🚗';
+  } else if (vin.startsWith('5YJSA5')) {
+    modelName = 'Model S P85'; icon = '🚗';
+  } else if (vin.startsWith('5YJ3')) {
+    modelName = 'Model 3'; icon = '🚘';
+  } else if (vin.startsWith('5YJX')) {
+    modelName = 'Model X'; icon = '🚙';
+  } else if (vin.startsWith('5YJY') || vin.startsWith('LRWY')) {
+    modelName = 'Model Y'; icon = '🚙';
+  } else if (vin.startsWith('LRW3')) {
+    modelName = 'Model 3 (China)'; icon = '🚘';
+  } else if (vin.startsWith('7G2')) {
+    modelName = 'Cybertruck'; icon = '🛻';
+  }
+
+  const vehicle = {
+    id: 'v_' + Date.now(),
+    nick: nick,
+    vin: vin,
+    modelName: modelName,
+    year: year,
+    battery: battery,
+    range: range,
+    color: _selectedNewColor,
+    note: note,
+    icon: icon,
+    createdAt: Date.now(),
+  };
+
+  vehicles.push(vehicle);
+  activeVehicleId = vehicle.id;
+  saveVehicles();
+  hideAddVehicle();
+
+  renderVehiclePicker();
+  updateVehicleUI();
+  updateCarVisual();
+  toast(`✅ ${nick} 已绑定`);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CAR VISUAL
+══════════════════════════════════════════════════════════════════ */
+
+const CAR = {locked:true,doorsOpen:false,frunkOpen:false,trunkOpen:false,windowsVent:false,lightsOn:false,flashActive:false,charging:false,connected:false,honking:false};
+
+function updateCarVisual() {
+  const wrap = document.getElementById('carWrap');
+  const glow = document.getElementById('carGlow');
+  const badge = document.getElementById('stateLabel');
+  const dot = document.getElementById('stateDot');
+  wrap.className = 'car-svg-wrap';
+  glow.className = 'glow';
+
+  // ── Hide all state groups first ──
+  document.querySelectorAll('.state-charging, .state-frunk, .state-trunk, .state-lights, .state-flash').forEach(g => {
+    g.style.display = 'none';
+  });
+  // Door seams
+  document.querySelector('.door-seams').style.display = 'none';
+
+  // ── Glow ──
+  if (CAR.flashActive) {
+    glow.classList.add('locked');
+  } else if (CAR.doorsOpen || !CAR.locked) {
+    glow.classList.add('unlocked');
+  } else if (CAR.locked) {
+    glow.classList.add('locked');
+  }
+  if (CAR.charging) glow.classList.add('charging');
+
+  // ── State label ──
+  if (!CAR.connected) {
+    badge.textContent = '离线'; dot.style.background = 'var(--onSurfaceMuted)';
+    wrap.style.opacity = '.5';
+  } else if (CAR.flashActive) {
+    badge.textContent = '💡 闪灯'; dot.style.background = 'var(--amber)';
+    wrap.style.opacity = '1';
+  } else if (CAR.doorsOpen || !CAR.locked) {
+    badge.textContent = '🔓 已开门'; dot.style.background = 'var(--green)';
+    wrap.style.opacity = '1';
+  } else if (CAR.locked) {
+    badge.textContent = '🔒 已锁门'; dot.style.background = 'var(--red)';
+    wrap.style.opacity = '1';
+  }
+
+  // ── Frunk ──
+  if (CAR.frunkOpen) {
+    document.querySelector('.state-frunk').style.display = 'block';
+    badge.textContent = '▲ 前备箱开'; dot.style.background = 'var(--amber)';
+  }
+  // ── Trunk ──
+  if (CAR.trunkOpen) {
+    document.querySelector('.state-trunk').style.display = 'block';
+    if (!CAR.frunkOpen) { badge.textContent = '▲ 后备箱开'; dot.style.background = 'var(--amber)'; }
+  }
+  // ── Lights (on) ──
+  if (CAR.lightsOn) {
+    document.querySelector('.state-lights').style.display = 'block';
+  }
+  // ── Flash ──
+  if (CAR.flashActive) {
+    document.querySelector('.state-flash').style.display = 'block';
+    wrap.classList.add('shake');
+    setTimeout(() => wrap.classList.remove('shake'), 300);
+    setTimeout(() => { CAR.flashActive = false; updateCarVisual(); }, 400);
+  }
+  // ── Charging ──
+  if (CAR.charging) {
+    document.querySelector('.state-charging').style.display = 'block';
+    badge.textContent = '⚡ 充电中'; dot.style.background = 'var(--accent)';
+  }
+  // ── Honk ──
+  if (CAR.honking) {
+    wrap.classList.add('honk');
+    setTimeout(() => { CAR.honking = false; updateCarVisual(); }, 500);
+  }
+  // ── Unlocked: show door seams ──
+  if (CAR.doorsOpen || !CAR.locked) {
+    document.querySelector('.door-seams').style.display = 'block';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   COMMANDS
+══════════════════════════════════════════════════════════════════ */
+
+async function sendCmd(cmd) {
+  const btn = event?.target?.closest('.qc,.lock-btn');
+  btn?.style.setProperty('opacity','.5');
+  if (cmd==='frunk'){CAR.frunkOpen=!CAR.frunkOpen;CAR.locked=false}
+  else if (cmd==='trunk'){CAR.trunkOpen=!CAR.trunkOpen;CAR.locked=false}
+  else if (cmd==='lock'){CAR.locked=true;CAR.doorsOpen=false;CAR.frunkOpen=false;CAR.trunkOpen=false}
+  else if (cmd==='unlock'){CAR.locked=false;CAR.doorsOpen=true}
+  else if (cmd==='flash_lights'){CAR.flashActive=true;setTimeout(()=>{CAR.flashActive=false;updateCarVisual()},800)}
+  else if (cmd==='honk'){CAR.honking=true}
+  else if (cmd==='windows_vent'){CAR.windowsVent=true}
+  else if (cmd==='windows_close'){CAR.windowsVent=false}
+  updateCarVisual();
+  try {
+    const r = await api('POST',cmd);
+    if(r&&r.success) toast(`✅ ${{lock:'🔒已锁门',unlock:'🔓已开门',frunk:'🟢前备箱',trunk:'🟤后备箱',flash_lights:'💡闪灯',honk:'📯鸣笛',windows_vent:'🪟通风',windows_close:'🔒关窗'}[cmd]||cmd}`);
+    else if(r){if(cmd==='lock')CAR.locked=false;else if(cmd==='unlock'){CAR.locked=true;CAR.doorsOpen=false}else if(cmd==='frunk')CAR.frunkOpen=!CAR.frunkOpen;else if(cmd==='trunk')CAR.trunkOpen=!CAR.trunkOpen;updateCarVisual();toast('⚠️失败','error')}
+  }finally{btn?.style.removeProperty('opacity')}
+}
+
+async function toggleLock(e) {
+  if(e){const r=e.currentTarget.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;const ri=document.createElement('span');ri.className='ripple';ri.style.cssText=`left:${x}px;top:${y}px;width:10px;height:10px;margin:-5px 0 0 -5px`;e.currentTarget.appendChild(ri);setTimeout(()=>ri.remove(),600)}
+  const cmd=CAR.locked?'unlock':'lock';
+  document.getElementById('lockBtn').classList.add('loading');
+  if(cmd==='unlock'){CAR.locked=false;CAR.doorsOpen=true}else{CAR.locked=true;CAR.doorsOpen=false;CAR.frunkOpen=false;CAR.trunkOpen=false}
+  updateCarVisual(); updateLockUI();
+  try {
+    const r=await api('POST',cmd);
+    if(!r||!r.success){if(cmd==='unlock'){CAR.locked=true;CAR.doorsOpen=false}else{CAR.locked=false;CAR.doorsOpen=true}updateCarVisual();updateLockUI();toast('⚠️失败','error')}
+    else toast(CAR.locked?'🔒已锁门':'🔓已开门');
+  }finally{document.getElementById('lockBtn').classList.remove('loading')}
+}
+function updateLockUI(){const b=document.getElementById('lockBtn');const l=document.getElementById('lockLabel');const i=b.querySelector('.icon');if(CAR.locked){b.className='lock-btn locked';i.textContent='🔒';l.textContent='锁门'}else{b.className='lock-btn unlocked';i.textContent='🔓';l.textContent='已开门'}}
+
+/* ══════════════════════════════════════════════════════════════════
+   NETWORK / API
+══════════════════════════════════════════════════════════════════ */
+
+function getActiveUrl() {
+  const mode = document.querySelector('.mode-chip.active')?.dataset.mode;
+  if(mode==='tailscale') return 'http://'+(document.getElementById('tsIp').value||'100.x.x.x')+':5000';
+  if(mode==='ddns') return 'http://'+(document.getElementById('ddnsDomain').value||'');
+  return document.getElementById('serverUrl').value||'';
+}
+function getToken(){const t=document.getElementById('apiToken').value;localStorage.setItem('tsl_tok',t);return t}
+async function api(method,path){
+  const url=getActiveUrl()+'/api/'+path;
+  if(url.includes('x.x')||!url)return null;
+  const h={'Content-Type':'application/json'};const t=getToken();if(t)h['X-Api-Token']=t;
+  try{const r=await fetch(url,{method,headers:h,signal:AbortSignal.timeout(5000)});if(!r.ok)return null;return await r.json()}catch(e){return null}
+}
+
+/* ── DIAGNOSTICS ── */
+async function runDiagnostics() {
+  const grid = document.getElementById('diagGrid');
+  const summary = document.getElementById('diagSummary');
+
+  // Reset to "checking" state
+  grid.querySelectorAll('.dc-indicator').forEach(d => { d.className = 'dc-indicator offline'; });
+  grid.querySelectorAll('.dc-status').forEach(d => { d.textContent = '检测中...'; });
+  summary.innerHTML = '⏳ 正在检测系统状态...';
+
+  // Server diagnostics
+  const r = await api('GET', 'diagnostics');
+
+  if (!r) {
+    // Orange Pi offline — show limited local info
+    grid.querySelectorAll('.dc-indicator')[0].className = 'dc-indicator error';
+    grid.querySelectorAll('.dc-status')[0].textContent = 'Pi 未连接 — 无法检测';
+
+    // Check phone's own Bluetooth
+    if ('bluetooth' in navigator) {
+      try {
+        const avail = await navigator.bluetooth.getAvailability();
+        grid.querySelectorAll('.dc-indicator')[2].className = avail ? 'dc-indicator ok' : 'dc-indicator error';
+        grid.querySelectorAll('.dc-status')[2].textContent = avail ? '手机蓝牙可用' : '手机蓝牙未开启';
+      } catch(e) {
+        grid.querySelectorAll('.dc-indicator')[2].className = 'dc-indicator warn';
+        grid.querySelectorAll('.dc-status')[2].textContent = '无法检测蓝牙状态';
+      }
+    } else {
+      grid.querySelectorAll('.dc-indicator')[2].className = 'dc-indicator warn';
+      grid.querySelectorAll('.dc-status')[2].textContent = '此浏览器不支持 Web Bluetooth';
+    }
+
+    // Everything else is unknown
+    for (let i = 1; i <= 5; i++) {
+      if (i === 2) continue; // already set
+      const indicators = grid.querySelectorAll('.dc-indicator');
+      const statuses = grid.querySelectorAll('.dc-status');
+      if (indicators[i]) indicators[i].className = 'dc-indicator warn';
+      if (statuses[i]) statuses[i].textContent = 'Orange Pi 离线';
+    }
+
+    summary.innerHTML = '<span class="ds-item"><span class="ds-dot error"></span>Pi 离线</span><span class="ds-item"><span class="ds-dot warn"></span>部分信息不可用</span>';
+    return;
+  }
+
+  // ── Render each diagnostic card ──
+  const diagItems = [
+    { key: 'can',         icon: '🔌', name: 'CAN 总线', idx: 0 },
+    { key: 'cellular',    icon: '📡', name: '4G/5G 网络', idx: 1 },
+    { key: 'bluetooth',   icon: '📶', name: '蓝牙 (Pi)', idx: 2 },
+    { key: 'internet',    icon: '🌐', name: '互联网', idx: 3 },
+    { key: 'tailscale',   icon: '🔗', name: 'Tailscale', idx: 4 },
+    { key: 'orange_pi',   icon: '🖥️', name: 'Orange Pi', idx: 5 },
+  ];
+
+  const indicators = grid.querySelectorAll('.dc-indicator');
+  const statuses = grid.querySelectorAll('.dc-status');
+
+  diagItems.forEach(item => {
+    let status = 'error';
+    let detail = '未知';
+
+    if (item.key === 'internet') {
+      status = r.cellular?.internet ? 'ok' : 'error';
+      detail = r.cellular?.internet ? '互联网可达' : '无互联网连接';
+    } else if (item.key === 'tailscale') {
+      status = r.cellular?.tailscale ? 'ok' : 'warn';
+      detail = r.cellular?.tailscale || '未安装 Tailscale';
+    } else if (item.key === 'orange_pi') {
+      status = 'ok';
+      detail = 'API 响应正常 · 在线';
+    } else {
+      const data = r[item.key];
+      if (data) {
+        status = data.status || 'error';
+        detail = data.detail || '';
+      }
+    }
+
+    if (indicators[item.idx]) {
+      indicators[item.idx].className = `dc-indicator ${status}`;
+    }
+    if (statuses[item.idx]) {
+      statuses[item.idx].textContent = detail;
+    }
+  });
+
+  // ── Summary bar ──
+  const statusCounts = { ok: 0, warn: 0, error: 0 };
+  indicators.forEach(d => {
+    if (d.classList.contains('ok')) statusCounts.ok++;
+    else if (d.classList.contains('warn')) statusCounts.warn++;
+    else if (d.classList.contains('error')) statusCounts.error++;
+  });
+
+  const dotsClass = statusCounts.error > 0 ? 'error' : statusCounts.warn > 0 ? 'warn' : 'ok';
+  const allOk = statusCounts.error === 0 && statusCounts.warn === 0;
+  summary.innerHTML = `
+    <span class="ds-item"><span class="ds-dot ${dotsClass}"></span>全部 ${allOk ? '正常' : Object.entries(statusCounts).filter(([k,v])=>v>0).map(([k,v])=>`${k=='ok'?'正常':k=='warn'?'警告':'异常'}(${v})`).join(' · ')}</span>
+    <span class="ds-item"><span class="ds-dot ${dotsClass}"></span>
+    ${statusCounts.error > 0 ? '⚠️ 需要处理' : statusCounts.warn > 0 ? '⚠️ 部分异常' : '✅ 一切正常'}
+    </span>
+  `;
+}
+
+async function pollStatus(){
+  const r=await api('GET','status');
+  const dot=document.getElementById('connDot');const label=document.getElementById('connLabel');
+  if(!r){dot.className='conn-dot offline';label.textContent='未连接';CAR.connected=false;updateCarVisual();return}
+  CAR.connected=true;
+  dot.className=`conn-dot ${r.connected?'online':'offline'}`;
+  label.textContent=r.connected?'已连接':'CAN离线';
+  if(r.battery_soc!=null){document.getElementById('batteryPct').textContent=r.battery_soc;const n=document.getElementById('batteryPct');n.className='num '+(r.battery_soc>50?'green':r.battery_soc>20?'amber':'red')}
+  updateCarVisual();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════════════════════════════════ */
+
+function navigateTo(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelectorAll('.dock-item').forEach(d=>d.classList.remove('active'));
+  const idx = {controls:1,diagnostics:2,settings:3}[name] || 1;
+  document.querySelector('.dock-item:nth-child('+idx+')').classList.add('active');
+  if (name === 'diagnostics') runDiagnostics();
+}
+function showVehiclePicker(){document.getElementById('pickerOverlay').classList.add('show');document.getElementById('pickerSheet').classList.add('show');renderVehiclePicker()}
+function hideVehiclePicker(){document.getElementById('pickerOverlay').classList.remove('show');document.getElementById('pickerSheet').classList.remove('show')}
+function toast(msg,type='success'){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._hide);el._hide=setTimeout(()=>el.classList.remove('show'),2000)}
+
+function init() {
+  const uc=()=>{const n=new Date();document.getElementById('clockTime').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')};
+  uc();setInterval(uc,1000);
+  document.getElementById('serverUrl').value=localStorage.getItem('tsl_srv')||'';
+  document.getElementById('apiToken').value=localStorage.getItem('tsl_tok')||'';
+  document.getElementById('tsIp').value=localStorage.getItem('tsl_ts')||'';
+  document.getElementById('ddnsDomain').value=localStorage.getItem('tsl_ddns')||'';
+  document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');localStorage.setItem('tsl_mode',c.dataset.mode)}));
+  loadVehicles();
+  updateVehicleUI();
+  updateCarVisual();
+  pollStatus();
+  setInterval(pollStatus,15000);
+}
+init();
+</script>
+</body>
+</html>
