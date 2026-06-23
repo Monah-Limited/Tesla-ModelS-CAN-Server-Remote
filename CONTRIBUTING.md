@@ -4,7 +4,7 @@ This is a community project — all contributions welcome.
 
 ## 🐛 Reporting Bugs
 
-1. Search [existing issues](https://github.com/Monah-Limited/tesla-local-control/issues)
+1. Search [existing issues](https://github.com/monah-studio/Tesla-ModelS-CAN-Server-Remote/issues)
 2. Describe: hardware setup (Orange Pi / CANable), Tesla model/year, error message
 3. Attach logs (redact any personal IPs or tokens)
 
