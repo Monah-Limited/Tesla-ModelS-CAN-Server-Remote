@@ -1,4 +1,4 @@
-# 🚗 Tesla Local Control · 自建 Tesla 控制系统
+# 🚗 Tesla Model S CAN Server · Remote
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-unfinished-yellow" alt="unfinished">
@@ -86,8 +86,8 @@ So I took a friend's spare Orange Pi 4 Pro — originally destined to become a d
 ```bash
 # 1. Flash Armbian or Ubuntu Server to Orange Pi
 # 2. Clone this repo
-git clone https://github.com/Monah-Limited/tesla-local-control.git
-cd tesla-local-control
+git clone https://github.com/Monah-Limited/Tesla-ModelS-CAN-Server-Remote.git
+cd Tesla-ModelS-CAN-Server-Remote
 
 # 3. Run one-click setup
 bash setup_orangepi.sh
