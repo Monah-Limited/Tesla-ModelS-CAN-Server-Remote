@@ -16,8 +16,7 @@
   .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px;padding-top:env(safe-area-inset-top,12px);padding-bottom:calc(env(safe-area-inset-bottom,16px)+80px)}
 
   /* ── Status Bar ── */
-  .status-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;font-size:12px;font-weight:500;color:var(--onSurfaceDim)}
-  .status-bar .time{font-size:14px;font-weight:600;color:var(--onSurface)}
+  .status-bar{display:flex;align-items:center;justify-content:flex-end;padding:8px 0 4px;font-size:12px;font-weight:500;color:var(--onSurfaceDim)}
   .status-bar .conn{display:flex;align-items:center;gap:4px}
   .status-bar .conn-dot{width:6px;height:6px;border-radius:50%}
   .status-bar .conn-dot.online{background:var(--green)}
@@ -209,7 +208,6 @@
 
 <div class="app" id="app">
   <div class="status-bar">
-    <span class="time" id="clockTime">--:--</span>
     <span class="conn"><span class="conn-dot offline" id="connDot"></span><span id="connLabel">未连接</span></span>
   </div>
 
@@ -229,127 +227,119 @@
       <div class="glow" id="carGlow"></div>
       <div class="car-svg-wrap" id="carWrap">
         <svg viewBox="0 0 300 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Ground shadow -->
-          <ellipse cx="150" cy="155" rx="130" ry="6" fill="rgba(255,255,255,.015)" class="ground-shadow"/>
+          <!-- Blueprint background -->
+          <rect x="0" y="0" width="300" height="170" fill="#0a1628"/>
 
-          <!-- ══ STATE: CHARGING ══ -->
-          <g class="state-charging" style="display:none">
-            <!-- Charge port glow -->
-            <circle cx="168" cy="48" r="12" fill="rgba(26,140,219,.08)"/>
-            <circle cx="168" cy="48" r="6" fill="rgba(26,140,219,.12)"/>
-            <!-- Cable -->
-            <path d="M168 38 C168 24 176 18 188 16 C194 14 202 12 208 6" stroke="rgba(255,255,255,.15)" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <!-- Plug -->
-            <rect x="204" y="2" width="8" height="6" rx="1" fill="rgba(255,255,255,.12)"/>
-            <rect x="206" y="0" width="4" height="2" rx="1" fill="var(--accent)"/>
-            <!-- Bolt icon -->
-            <text x="168" y="52" text-anchor="middle" font-size="14" fill="var(--accent)" opacity=".7">⚡</text>
+          <!-- Blueprint grid -->
+          <g stroke="rgba(79,195,247,.04)" stroke-width=".3">
+            <line x1="0" y1="0" x2="0" y2="170"/><line x1="15" y1="0" x2="15" y2="170"/>
+            <line x1="30" y1="0" x2="30" y2="170"/><line x1="45" y1="0" x2="45" y2="170"/>
+            <line x1="60" y1="0" x2="60" y2="170"/><line x1="75" y1="0" x2="75" y2="170"/>
+            <line x1="90" y1="0" x2="90" y2="170"/><line x1="105" y1="0" x2="105" y2="170"/>
+            <line x1="120" y1="0" x2="120" y2="170"/><line x1="135" y1="0" x2="135" y2="170"/>
+            <line x1="150" y1="0" x2="150" y2="170"/><line x1="165" y1="0" x2="165" y2="170"/>
+            <line x1="180" y1="0" x2="180" y2="170"/><line x1="195" y1="0" x2="195" y2="170"/>
+            <line x1="210" y1="0" x2="210" y2="170"/><line x1="225" y1="0" x2="225" y2="170"/>
+            <line x1="240" y1="0" x2="240" y2="170"/><line x1="255" y1="0" x2="255" y2="170"/>
+            <line x1="270" y1="0" x2="270" y2="170"/><line x1="285" y1="0" x2="285" y2="170"/>
+            <line x1="0" y1="0" x2="300" y2="0"/><line x1="0" y1="10" x2="300" y2="10"/>
+            <line x1="0" y1="20" x2="300" y2="20"/><line x1="0" y1="30" x2="300" y2="30"/>
+            <line x1="0" y1="40" x2="300" y2="40"/><line x1="0" y1="50" x2="300" y2="50"/>
+            <line x1="0" y1="60" x2="300" y2="60"/><line x1="0" y1="70" x2="300" y2="70"/>
+            <line x1="0" y1="80" x2="300" y2="80"/><line x1="0" y1="90" x2="300" y2="90"/>
+            <line x1="0" y1="100" x2="300" y2="100"/><line x1="0" y1="110" x2="300" y2="110"/>
+            <line x1="0" y1="120" x2="300" y2="120"/><line x1="0" y1="130" x2="300" y2="130"/>
+            <line x1="0" y1="140" x2="300" y2="140"/><line x1="0" y1="150" x2="300" y2="150"/>
+            <line x1="0" y1="160" x2="300" y2="160"/>
           </g>
 
-          <!-- ══ STATE: FRUNK OPEN ══ -->
-          <g class="state-frunk" style="display:none">
-            <!-- Raised hood silhouette -->
-            <path d="M8 94 C8 72 22 52 42 46 L48 44 L48 72 C32 74 20 84 14 98 L8 94Z" fill="#2a2a3e" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
-            <!-- Gap shadow underneath -->
-            <path d="M42 68 C50 64 62 60 78 58 L78 44 C62 46 50 50 42 54 L42 68Z" fill="rgba(0,0,0,.3)"/>
-            <!-- Support strut -->
-            <line x1="48" y1="68" x2="58" y2="54" stroke="rgba(255,255,255,.06)" stroke-width=".8"/>
-            <!-- Warning indicator -->
-            <text x="45" y="88" text-anchor="middle" font-size="10" fill="var(--amber)" opacity=".8">▲ 前备箱</text>
+          <!-- Ground line -->
+          <line x1="5" y1="148" x2="295" y2="148" stroke="rgba(79,195,247,.15)" stroke-width=".5" stroke-dasharray="3,3"/>
+
+          <!-- ══ BLUEPRINT TESLA MODEL S SIDE PROFILE ══ -->
+
+          <!-- Dimension lines (vertical) -->
+          <line x1="8" y1="30" x2="8" y2="148" stroke="rgba(79,195,247,.2)" stroke-width=".4"/>
+          <line x1="290" y1="30" x2="290" y2="148" stroke="rgba(79,195,247,.2)" stroke-width=".4"/>
+          <!-- Dimension arrows -->
+          <text x="144" y="165" text-anchor="middle" font-size="6" fill="rgba(79,195,247,.3)" font-family="monospace">4970 mm</text>
+          <text x="4" y="85" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.2)" font-family="monospace" transform="rotate(-90,4,85)">1440 mm</text>
+
+          <!-- Main body - blueprint outline style (stroke only, no fill) -->
+          <path d="M36 130 C14 128 8 112 8 96 C8 80 14 66 26 60 L32 56 C40 46 52 36 72 32 L100 28 L132 28 L162 32 C182 36 196 46 204 56 L210 60 C224 66 230 80 230 96 C230 112 224 128 202 130 L192 134 C184 140 172 144 152 145 L90 145 C70 144 58 140 50 134 L36 130Z"
+            stroke="#4fc3f7" stroke-width="1.2" fill="none" class="car-part"/>
+
+          <!-- Inner construction lines -->
+          <path d="M36 130 C14 128 8 112 8 96 C8 80 14 66 26 60 L32 56 C40 46 52 36 72 32 L100 28 L132 28 L162 32 C182 36 196 46 204 56 L210 60 C224 66 230 80 230 96 C230 112 224 128 202 130 L192 134 C184 140 172 144 152 145 L90 145 C70 144 58 140 50 134 L36 130Z"
+            stroke="rgba(79,195,247,.08)" stroke-width=".3" fill="none" transform="scale(.98) translate(3,1.5)"/>
+
+          <!-- Roof / greenhouse -->
+          <path d="M56 56 C62 42 76 32 96 28 L116 27 C140 28 156 34 166 46"
+            stroke="#4fc3f7" stroke-width=".8" fill="none" class="car-part"/>
+
+          <!-- Windshield -->
+          <path d="M56 56 C62 42 76 32 96 28 L108 28 L108 48 C88 50 72 56 60 66 L56 56Z"
+            stroke="#4fc3f7" stroke-width=".6" fill="none" opacity=".6"/>
+
+          <!-- Rear window -->
+          <path d="M178 46 C168 36 154 30 138 28 L138 48 C152 48 166 54 176 62 L178 46Z"
+            stroke="#4fc3f7" stroke-width=".6" fill="none" opacity=".6"/>
+
+          <!-- Door seams (blueprint dashed) -->
+          <line x1="108" y1="32" x2="108" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
+          <line x1="144" y1="32" x2="144" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
+          <line x1="180" y1="32" x2="180" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
+
+          <!-- Door handles -->
+          <rect x="112" y="64" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+          <rect x="158" y="64" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+          <rect x="74" y="66" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+          <rect x="198" y="66" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+
+          <!-- Frunk line -->
+          <path d="M8 94 C8 78 18 64 32 58 L42 54 L42 88 C28 90 18 98 12 108 L8 94Z"
+            stroke="#4fc3f7" stroke-width=".5" fill="none" opacity=".5"/>
+
+          <!-- Trunk line -->
+          <path d="M228 94 C232 78 225 64 212 58 L205 54 L202 88 C216 90 224 98 230 108 L228 94Z"
+            stroke="#4fc3f7" stroke-width=".5" fill="none" opacity=".5"/>
+
+          <!-- Headlight -->
+          <ellipse cx="14" cy="94" rx="5" ry="2.5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+          <!-- Taillight -->
+          <ellipse cx="232" cy="96" rx="3" ry="2" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
+
+          <!-- Wheels (blueprint style) -->
+          <g stroke="#4fc3f7" stroke-width=".6" fill="none">
+            <!-- Front wheel -->
+            <circle cx="78" cy="140" r="16"/>
+            <circle cx="78" cy="140" r="10" opacity=".5"/>
+            <circle cx="78" cy="140" r="4" opacity=".3"/>
+            <line x1="78" y1="124" x2="78" y2="156" stroke-width=".3" opacity=".3"/>
+            <line x1="62" y1="140" x2="94" y2="140" stroke-width=".3" opacity=".3"/>
+            <!-- Rear wheel -->
+            <circle cx="190" cy="140" r="16"/>
+            <circle cx="190" cy="140" r="10" opacity=".5"/>
+            <circle cx="190" cy="140" r="4" opacity=".3"/>
+            <line x1="190" y1="124" x2="190" y2="156" stroke-width=".3" opacity=".3"/>
+            <line x1="174" y1="140" x2="206" y2="140" stroke-width=".3" opacity=".3"/>
           </g>
 
-          <!-- ══ STATE: TRUNK OPEN ══ -->
-          <g class="state-trunk" style="display:none">
-            <!-- Raised hatch -->
-            <path d="M228 94 C232 72 220 52 205 46 L198 44 L198 72 C214 74 224 84 230 98 L228 94Z" fill="#2a2a3e" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
-            <path d="M198 68 C190 64 178 60 162 58 L162 44 C178 46 190 50 198 54 L198 68Z" fill="rgba(0,0,0,.3)"/>
-            <line x1="198" y1="68" x2="188" y2="54" stroke="rgba(255,255,255,.06)" stroke-width=".8"/>
-            <text x="195" y="88" text-anchor="middle" font-size="10" fill="var(--amber)" opacity=".8">▲ 后备箱</text>
-          </g>
+          <!-- Wheelbase measurement -->
+          <line x1="78" y1="158" x2="78" y2="162" stroke="rgba(79,195,247,.2)" stroke-width=".3"/>
+          <line x1="190" y1="158" x2="190" y2="162" stroke="rgba(79,195,247,.2)" stroke-width=".3"/>
+          <line x1="78" y1="160" x2="190" y2="160" stroke="rgba(79,195,247,.15)" stroke-width=".3"/>
+          <text x="134" y="159" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.3)" font-family="monospace">2960 mm</text>
 
-          <!-- ══ STATE: LIGHTS ON ══ -->
-          <g class="state-lights" style="display:none">
-            <!-- Low beam -->
-            <ellipse cx="0" cy="96" rx="20" ry="6" fill="rgba(200,220,255,.06)"/>
-            <ellipse cx="-12" cy="98" rx="14" ry="4" fill="rgba(200,220,255,.04)"/>
-            <!-- High beam -->
-            <ellipse cx="4" cy="94" rx="24" ry="4" fill="rgba(200,220,255,.03)"/>
-          </g>
+          <!-- Model badge -->
+          <text x="150" y="16" text-anchor="middle" font-size="8" fill="#4fc3f7" font-family="monospace" letter-spacing="3" opacity=".6">MODEL S 85D</text>
+          <text x="150" y="24" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.3)" font-family="monospace" letter-spacing="2">2015 · 85 kWh · DUAL MOTOR</text>
 
-          <!-- ══ STATE: FLASH ══ -->
-          <g class="state-flash" style="display:none">
-            <ellipse cx="6" cy="96" rx="16" ry="10" fill="rgba(255,255,255,.35)"/>
-            <ellipse cx="-10" cy="96" rx="18" ry="8" fill="rgba(255,255,255,.15)"/>
-            <!-- Glare on ground -->
-            <ellipse cx="20" cy="152" rx="30" ry="8" fill="rgba(255,255,255,.06)"/>
-          </g>
-
-          <!-- ══ BASE CAR BODY (always visible) ══ -->
-          <g class="car-base">
-            <!-- Main body -->
-            <path d="M40 132 C15 130 8 112 8 96 C8 80 15 66 28 60 L35 56 C42 46 55 36 75 32 L105 28 L135 28 L165 32 C185 36 198 46 205 56 L212 60 C225 66 232 80 232 96 C232 112 225 130 200 132 L190 136 C182 142 170 146 150 147 L90 147 C70 146 58 142 50 136 L40 132Z" fill="var(--carBody)" stroke="rgba(255,255,255,.03)" stroke-width=".6"/>
-            <!-- Body highlight -->
-            <path d="M48 128 C20 126 12 110 12 96 C12 82 20 68 32 62 L38 58 C44 50 56 40 72 36 L50 60 C38 66 32 78 32 96 C32 110 38 122 48 128Z" fill="rgba(255,255,255,.02)"/>
-            <!-- Roof line -->
-            <path d="M58 56 C64 42 78 32 100 28 L120 27 C142 28 158 34 168 46" stroke="rgba(255,255,255,.04)" stroke-width=".4" fill="none"/>
-
-            <!-- Windshield -->
-            <path d="M58 56 C64 42 78 32 98 28 L108 28 L108 50 C90 52 74 58 62 68 L58 56Z" fill="var(--glass)" opacity=".4"/>
-            <!-- Rear window -->
-            <path d="M180 46 C170 36 156 30 140 28 L140 50 C154 50 168 56 178 64 L180 46Z" fill="var(--glass)" opacity=".3"/>
-
-            <!-- DOOR SEAMS (visible when unlocked) -->
-            <g class="door-seams" style="display:none">
-              <line x1="108" y1="32" x2="108" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
-              <line x1="144" y1="32" x2="144" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
-              <line x1="180" y1="32" x2="180" y2="102" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>
-            </g>
-
-            <!-- Door panels (filled) -->
-            <path d="M108 32 L108 100 L144 100 L144 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <path d="M144 32 L144 100 L180 100 L180 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <path d="M55 34 L55 104 L105 104 L105 32" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <path d="M180 32 L180 104 L230 104 L230 34" fill="var(--carBodyLight)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-
-            <!-- Door handles -->
-            <rect x="112" y="62" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
-            <rect x="158" y="62" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
-            <rect x="74" y="64" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
-            <rect x="200" y="64" width="8" height="2" rx="1" fill="rgba(255,255,255,.1)"/>
-
-            <!-- Windows -->
-            <path d="M105 32 L105 46 L148 46 L148 32" fill="rgba(100,180,255,.05)" opacity=".3"/>
-            <path d="M55 36 L55 46 L100 46 L100 32" fill="rgba(100,180,255,.03)" opacity=".2"/>
-
-            <!-- ══ Frunk (default closed) ══ -->
-            <path d="M8 94 C8 78 18 64 32 58 L42 54 L42 88 C28 90 18 98 12 108 L8 94Z" fill="var(--carBody)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <path d="M42 52 C50 48 62 42 78 40" stroke="rgba(255,255,255,.04)" stroke-width=".3" fill="none"/>
-
-            <!-- ══ Trunk (default closed) ══ -->
-            <path d="M228 94 C232 78 225 64 212 58 L205 54 L202 88 C216 90 224 98 230 108 L228 94Z" fill="var(--carBody)" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <path d="M205 52 C198 48 188 42 172 40" stroke="rgba(255,255,255,.04)" stroke-width=".3" fill="none"/>
-
-            <!-- ══ Headlights (normal) ══ -->
-            <ellipse cx="16" cy="94" rx="6" ry="3.5" fill="rgba(255,255,255,.12)"/>
-            <!-- Tail lights -->
-            <ellipse cx="232" cy="96" rx="4" ry="3" fill="rgba(200,50,0,.15)"/>
-
-            <!-- ══ Wheels ══ -->
-            <g><ellipse cx="78" cy="138" rx="20" ry="12" fill="#0a0a0a" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
-            <ellipse cx="78" cy="138" rx="12" ry="7" fill="#1a1a1a" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <ellipse cx="78" cy="138" rx="3" ry="2" fill="rgba(255,255,255,.02)"/>
-            <line x1="78" y1="131" x2="78" y2="145" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
-            <line x1="71" y1="134" x2="85" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
-            <line x1="85" y1="134" x2="71" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/></g>
-            <g><ellipse cx="212" cy="138" rx="20" ry="12" fill="#0a0a0a" stroke="rgba(255,255,255,.04)" stroke-width=".6"/>
-            <ellipse cx="212" cy="138" rx="12" ry="7" fill="#1a1a1a" stroke="rgba(255,255,255,.02)" stroke-width=".4"/>
-            <ellipse cx="212" cy="138" rx="3" ry="2" fill="rgba(255,255,255,.02)"/>
-            <line x1="212" y1="131" x2="212" y2="145" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
-            <line x1="205" y1="134" x2="219" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/>
-            <line x1="219" y1="134" x2="205" y2="142" stroke="rgba(255,255,255,.03)" stroke-width=".4"/></g>
-          </g>
+          <!-- Blueprint stamp / border -->
+          <rect x="2" y="2" width="296" height="166" stroke="rgba(79,195,247,.1)" stroke-width=".3" fill="none"/>
+          <rect x="4" y="4" width="292" height="162" stroke="rgba(79,195,247,.06)" stroke-width=".2" fill="none"/>
         </svg>
-      </div>
+      </div><!-- /car-svg-wrap -->
       <div class="car-state-badge"><span class="state-dot" id="stateDot" style="background:var(--onSurfaceMuted)"></span><span id="stateLabel">就绪</span></div>
     </div>
 
@@ -1076,9 +1066,7 @@ function hideVehiclePicker(){document.getElementById('pickerOverlay').classList.
 function toast(msg,type='success'){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._hide);el._hide=setTimeout(()=>el.classList.remove('show'),2000)}
 
 function init() {
-  const uc=()=>{const n=new Date();document.getElementById('clockTime').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')};
-  uc();setInterval(uc,1000);
-  document.getElementById('serverUrl').value=localStorage.getItem('tsl_srv')||'';
+  // ── Toolbar ──
   document.getElementById('apiToken').value=localStorage.getItem('tsl_tok')||'';
   document.getElementById('tsIp').value=localStorage.getItem('tsl_ts')||'';
   document.getElementById('ddnsDomain').value=localStorage.getItem('tsl_ddns')||'';
