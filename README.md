@@ -18,29 +18,27 @@
 <a name="english"></a>
 ## 🇺🇸 English
 
-### Why This Exists — A Story About a Car
+### The Story
 
-In 2015, I bought a Tesla Model S 85D. Midnight Silver Metallic. HK$900,000 before tax. It wasn't just a car — it was a statement, a companion, a piece of engineering history. We drove through monsoons, midnight expressways, and the quiet back roads of the New Territories. That car knew me before I knew myself.
+I'm a Github-native open-source contributor with triple backgrounds: law, pure mathematics and full-stack engineering. Outside of coding and protocol reverse-engineering, I also work as an early-stage tech startup angel investor. I'm used to solving hardware and software ecosystem deadlocks with logical mathematical modeling, underlying network protocol analysis and legal compliance verification. I'm releasing this self-hosted Tesla vehicle control project not for showing off tech skills, but for a real, helpless user-side rescue against official service restrictions.
 
-Then one day, insurance declared it a "total loss."
+Let me start with the whole story, which will resonate with plenty of Tesla owners who have suffered the same official account ban issue. I own a rebuilt 2015 Tesla Model S 85D with a previous total loss record. I originally purchased this vehicle for 900,000 HKD before tax. This car has accompanied me through countless road trips and daily commutes, carrying tons of personal travel memories far beyond its material value.
 
-Tesla's servers flipped a switch somewhere in Fremont. No more app. No more remote lock. No more climate control from my phone. The same vehicle I'd paid nearly a million Hong Kong dollars for was suddenly *dumber* than a 1998 Corolla — because a database entry said so.
+After the total-loss accident, I independently invested another 130,000 HKD to complete full vehicle overhaul and hardware restoration. Every physical component of the car works perfectly and supports normal road driving. However, Tesla unilaterally suspended my official Tesla mobile app account and permanently cut off all cloud-based remote vehicle services, without any prior notice, reasonable official explanation or available appeal channels. Even though I am still the legal registered owner of this fully functional vehicle, I was stripped of all basic owner remote access privileges overnight.
 
-I'm a lawyer by training, a mathematician by obsession, and a software engineer by love. GitHub is my second home. I invest in early-stage deep-tech startups. And I thought: *this is absurd*. I own the machine. The CAN bus is mine. Why should a server in California decide whether I can open my own frunk?
+Currently, the residual market value of this rebuilt old Model S is merely 150,000 HKD. From a pure asset investment perspective, abandoning this car would be the most rational choice. But vehicles carry emotions, not just market prices. I never violated any official user terms, and all I want is equal basic owner functions that every Tesla user deserves: remote door unlock when forgetting physical keys, pre-conditioning cabin temperature, real-time vehicle status check and fundamental remote body control. I don't need premium official cloud services; I only demand fair and basic ownership rights for my own car.
 
-So I took a friend's spare Orange Pi 4 Pro — originally destined to become a dashcam NAS with 3 TOPS of edge AI compute — and repurposed it. This repository is the result.
+With no official support and no valid appeal path left, I decided to build an independent local control system completely out of Tesla's official cloud ecosystem. I got a free Orange Pi 4 Pro (6GB) SBC from a friend for hardware testing a while ago. My original plan for this single-board computer had nothing to do with vehicle remote control: I intended to build a vehicle-mounted lightweight NAS plus edge computing solution, leveraging its 3 TOPS AI computing power to realize local dashcam video storage and on-board vision edge AI analysis.
 
-### What This Is (and Isn't)
+Given the complete shutdown of official app access, I restructured the whole solution rapidly. I adopt Orange Pi 4 Pro as the local core computing unit, connect to the vehicle's underlying CAN bus via CAN Server to realize direct hardware communication with the car, and deploy Tailscale to build secure private network penetration. The whole system runs 100% offline and self-hosted, with zero reliance on Tesla official cloud servers.
 
-| ✅ This is | ❌ This is NOT |
-|-----------|----------------|
-| 🔧 A self-hosted CAN bus vehicle controller | 🚫 A finished product |
-| 📡 Works offline, no Tesla servers needed | 🚫 A replacement for Tesla's app |
-| 💻 Runs on Orange Pi / Raspberry Pi + USB CAN | 🚫 Production-ready |
-| 🔗 Full PWA web app + REST API | 🚫 Plug-and-play — requires tinkering |
-| 🇨🇳🇭🇰🇯🇵🇰🇷 Multi-language | 🚫 Warranty-friendly |
+### Critical Notice
 
-> **⚠️ WORK IN PROGRESS** — This is a weekend hacker's side project. It *mostly* works on my desk. It has NOT completed a full car integration yet. I'm sharing it because I believe in open-source, and if you have a similar situation (total-loss Tesla, blocked by OEM cloud), maybe we can figure it out together.
+> ⚠️ **WORK IN PROGRESS** — This project is an unfinished work-in-progress prototype, not a stable production-ready solution.
+
+As an open-source enthusiast who advocates community co-development, I open-source all my code and hardware wiring docs here for non-commercial communication only. This project has no intention to crack vehicle safety firmware or conduct illegal vehicle modification. I just want to communicate with fellow Tesla owners who have encountered arbitrary official account bans and service cuts, to figure out reliable self-hosted control workarounds together.
+
+With solid legal awareness, rigorous mathematical logic and underlying engineering capabilities, I strictly limit this solution to legal self-owned vehicle local control only, without touching any core power and safety-related vehicle firmware. At the end of the day, it's simple: I own the car, so I should have the right to control my own car.
 
 ### The Stack
 
@@ -137,36 +135,105 @@ MIT — do whatever you want. Just don't sue me if your car does something unexp
 <a name="简体中文"></a>
 ## 🇨🇳 简体中文
 
-### 为什么有这个项目 — 一辆车的故事
+### 故事的起点
 
-2015 年，我买了一台特斯拉 Model S 85D。午夜银，不含税 90 万港币。它不只是一辆车——它是一个宣言，一个伙伴，一段无法替代的旅程。我们一起穿过台风天、深夜高速公路、新界的乡间小路。那台车比任何机器都更懂我。
+大家好，我是一名常年泡在Github开源社区的独立开发者，同时拥有法律、纯数学以及全栈技术三重学术背景，日常也做早期科技初创公司的天使投资，习惯用逻辑推演、底层代码拆解以及合规层面的双向思维，去解决各类硬件与软件的闭环问题。今天开源这套基于香橙派搭建的特斯拉自研车机控制系统，没有炫技的意思，纯粹是一次被逼无奈、为爱发电的底层技术自救。
 
-然后有一天，保险公司判定它「全损」。
+先聊聊整件事的起因，相信很多特斯拉车主都能狠狠共情。我的座驾是2015款全损修复版 Tesla Model S 85D，当年落地不含税费的购入成本高达90万港币，这台车陪我走过了无数通勤、长途自驾的日夜，承载了非常多私人出行回忆，对我而言从来不是一台单纯的代步机器。
 
-特斯拉在弗里蒙特的某台服务器里打了一个开关。App 没了，远程锁门没了，手机预热空调没了。我花了近一百万港币买的车，因为数据库中某个标志位被翻转，突然变得比 1998 年的卡罗拉还要蠢。
+车辆发生全损事故之后，我自掏腰包花费13万港币全额完成整车修复，整车硬件工况全部恢复正常，车辆本身完全可以正常上路使用。但让我无法理解也无法接受的是：特斯拉官方直接单方面封禁了我的车主APP账号，永久关停了云端所有官方远程控制服务。没有任何协商空间，没有合规层面的合理解释，哪怕车辆硬件完好、我依旧是合法登记的车主，我彻底失去了所有车主标配的远程控车权限。
 
-我是法学出身，痴迷于数学，靠写代码获得快乐。GitHub 是我的第二个家。我投早期硬科技公司。我当时想：**这他妈太荒谬了**。我拥有这台机器。CAN 总线是我的。凭什么加州的一台服务器能决定我能不能打开自己的前备箱？
+如今这台修复完毕的老款Model S 85D二手残值仅仅只剩15万港币，从资产价值来看，放弃它看似是最理性的选择。但情怀从来不能用二手车估值衡量，我从头到尾没有任何出格操作，只是想要拿回每一位特斯拉车主本该平等拥有的基础功能：忘带车钥匙时远程解锁、提前开启空调、查看车辆状态、基础远程车身控制。我不需要官方云端的增值服务，我只想要属于我自己车辆最基础、最公平的车主权益。
 
-所以我拿朋友送的一块 Orange Pi 4 Pro——本来打算做成行车记录仪 NAS，用 3 TOPS 做边缘 AI 计算——改了用途。这个仓库就是结果。
+在官方彻底切断云端通路、没有任何申诉渠道之后，我决定不走官方生态，自己从零搭建一套本地化控车方案。刚好前段时间朋友赠予我一块闲置的Orange Pi 4 Pro（6GB）开发板，最初拿到这块板子的规划和本次控车项目完全无关：我原本计划依托这块开发板3TOPS的算力，搭建一台小型车载NAS+边缘计算设备，专门做特斯拉行车记录仪视频本地存储、车载画面AI边缘识别分析，只是单纯想做一个轻量化车载边缘算力玩机项目。
 
-### 这是什么（不是什么）
+恰逢官方账号被封无路可走，我顺势调整了整体方案架构：以Orange Pi 4 Pro为本地核心算力主机，通过CAN Server直连车辆CAN总线，打通车辆底层硬件通讯协议，再搭配Tailscale搭建私有内网穿透通道，完全脱离特斯拉官方云端服务器，自建一套私有化、无第三方依赖的远程车辆控制系统。
 
-| ✅ 这是 | ❌ 不是 |
-|---------|--------|
-| 🔧 自建 CAN 总线车辆控制器 | 🚫 完成品 |
-| 📡 离线可用，无需 Tesla 服务器 | 🚫 Tesla 官方 App 的替代品 |
-| 💻 树莓派 / Orange Pi + USB CAN 模块 | 🚫 量产就绪 |
-| 🔗 完整 PWA Web App + REST API | 🚫 开箱即用 |
-| 🇨🇳🇭🇰🇯🇵🇰🇷 多语言 | 🚫 保修友好 |
+### 重要前置声明
 
-> **⚠️ 开发中** — 周末黑客项目。在我的桌上大概是跑得通的。还没有完成完整车载集成。分享出来是因为我相信开源。
+> ⚠️ **未完成半成品** — 本项目目前依旧是未完成测试半成品，绝非成熟商用方案。
+
+作为一名习惯开源共建的Github爱好者，我把整个项目开源出来，不是为了破解、篡改车辆安全底层协议，也不是用于任何违规改装用途。我只是想和圈内同样遭遇官方账号封禁、被官方一刀切关停APP服务的特斯拉车主，一起交流底层CAN总线通讯逻辑、私有内网控车方案，抱团解决官方服务霸权带来的用车痛点。
+
+我懂法律合规边界，懂数学逻辑建模，也懂车载底层硬件与网络架构，所以整套方案全程恪守车辆安全底线与相关合规要求，只做车主合法自有车辆的本地私有化控制，不触碰任何车辆动力安全底层固件。说到底，一个很朴素的心愿：我的车，我自己做主。
+
+### 架构
+
+```
+📱 手机 (PWA)
+    ↓
+🔗 Tailscale / WireGuard (加密 P2P 隧道)
+    ↓
+🍊 Orange Pi 4 Pro (6GB RAM, ARM64 Linux)
+    ├── Flask REST API (端口 5000)
+    ├── Python CAN 驱动 (python-can + socketcan)
+    ├── Tailscale 客户端 (常驻在线)
+    ├── DDNS 更新器 (可选 — remote.openfrunk.com)
+    └── BLE 信标 (本地手机发现)
+    ↓
+🔌 CANable 2.0 USB-CAN 适配器
+    └── OBD-II 接口 → 车身 CAN 总线 (125 kbps)
+```
+
+### 功能
+
+- 🔒 通过 CAN 总线锁定/解锁车门
+- 🟢 开启前备箱 / 🟤 后备箱
+- 💡 闪灯 · 📯 鸣笛
+- 🪟 车窗通风 · ⚡ 充电控制
+- 📊 实时诊断（CAN / 蓝牙 / 4G / Tailscale）
+- 🚘 VIN 解码器 — 39 款 Tesla 车型数据库
+- 🎨 Tesla + Material You 风格 UI（深色主题）
+- 🌐 多语言界面（中文 / 英文 / 日文 / 韩文）
+- 📡 四种连接模式：Tailscale / DDNS / WiFi / BLE
+
+### 所需硬件
+
+| 组件 | 预估成本 | 购买渠道 |
+|------|---------|---------|
+| Orange Pi 4 Pro / 树莓派 4 | ~¥300 | 淘宝 / Amazon |
+| CANable 2.0 USB-CAN | ~¥45 | 淘宝 |
+| OBD-II 连接器 | ~¥20 | 淘宝 |
+| 4G USB 上网卡（可选） | ~¥200 | 运营商 |
+
+### 快速开始
+
+```bash
+# 1. 为 Orange Pi 刷入 Armbian 或 Ubuntu Server
+# 2. 克隆仓库
+git clone https://github.com/Monah-Limited/Tesla-ModelS-CAN-Server-Remote.git
+cd Tesla-ModelS-CAN-Server-Remote
+
+# 3. 运行一键部署脚本
+bash setup_orangepi.sh
+
+# 4. 连接 CANable 到 OBD-II 接口
+#    CAN_H → pin 1   CAN_L → pin 9   GND → pin 4
+
+# 5. 启动 CAN 接口
+sudo slcand -o -c -s8 /dev/ttyACM0 can0
+sudo ip link set can0 up type can bitrate 125000
+
+# 6. （可选）配置网络层
+bash network/setup_network.sh
+```
+
+### 同类项目
+
+- [Open Vehicles](https://docs.openvehicles.com) — OVMS 硬件模块
+- [Tesla Vehicle Command SDK](https://github.com/teslamotors/vehicle-command) — 适用于 2021+ 支持 BLE 的车型
+- [Comma.ai OpenPilot](https://github.com/commaai/openpilot) — ADAS 系统
+
+### 许可证
+
+MIT — 随便用。只是别因为你的车出了意外来起诉我。这是个人项目，不是商业产品。
 
 ---
 
 <a name="日本語"></a>
 ## 🇯🇵 日本語
 
-### このプロジェクトが生まれた理由 — ある車の物語
+### このプロジェクトが生まれた理由
 
 2015年、税抜90万香港ドルで Tesla Model S 85D を購入しました。ミッドナイトシルバー。単なる移動手段ではなく、宣言であり、伴侶であり、エンジニアリングの申し子でした。台風の夜も、深夜の高速道路も、新界の静かな裏道も、その車はいつも私のそばにいました。
 
@@ -178,14 +245,14 @@ MIT — do whatever you want. Just don't sue me if your car does something unexp
 
 だから友達にもらった Orange Pi 4 Pro（3 TOPSのエッジAIでドラレコNASを作る予定だった）を転用しました。このリポジトリはその結果です。
 
-> **⚠️ 開発中** — 週末のハッカープロジェクトです。机上では大体動いてます。実車での完全統合はまだです。
+> **⚠️ 開発中** — 週末のハッカープロジェクトです。机上では大体動いてます。実車での完全統合はまだです。これは開発途中の試作品であり、完成品ではありません。
 
 ---
 
 <a name="한국어"></a>
 ## 🇰🇷 한국어
 
-### 이 프로젝트가 존재하는 이유 — 한 대의 차 이야기
+### 이 프로젝트가 존재하는 이유
 
 2015년, 세금 제외 90만 홍콩달러를 주고 Tesla Model S 85D를 샀습니다. 미드나잇 실버. 그냥 차가 아니었어요. 선언이었고, 동반자였고, 엔지니어링 역사의 한 조각이었습니다. 태풍이 몰아치는 밤, 깊은 한밤의 고속도로, 신계의 조용한 뒷길 — 그 차는 나를 누구보다 잘 알았습니다.
 
@@ -197,7 +264,7 @@ MIT — do whatever you want. Just don't sue me if your car does something unexp
 
 그래서 친구에게서 받은 Orange Pi 4 Pro(3 TOPS 에지 AI로 블랙박스 NAS를 만들 예정이었던)를 용도 변경했습니다. 이 저장소가 바로 그 결과입니다.
 
-> **⚠️ 개발 중** — 주말 해커의 사이드 프로젝트입니다. 책상 위에선 대부분 돌아가요. 실차 완전 통합은 아직입니다.
+> **⚠️ 개발 중** — 주말 해커의 사이드 프로젝트입니다. 책상 위에선 대부분 돌아가요. 실차 완전 통합은 아직입니다. 이것은 진행 중인 프로토타입이며 안정적인 완성품이 아닙니다.
 
 ---
 
@@ -224,7 +291,7 @@ tesla-local-control/
 
 ## 👤 About the Author
 
-**Tim Wynter** — lawyer, mathematician, engineer. GitHub native. Deep-tech investor. Weekend hacker who refuses to let a cloud server dictate what his car can do.
+**Tim Wynter** — lawyer, mathematician, full-stack engineer. GitHub native. Deep-tech early-stage angel investor. Weekend hacker who refuses to let a cloud server dictate what his legally owned car can or cannot do.
 
 This repo is a conversation starter, not a product pitch. PRs welcome. Issues welcome. Ideas welcome. Let's build together.
 
