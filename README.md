@@ -1,20 +1,26 @@
 # 🚗 Tesla CANRemote by OpenFrunk
 
+> **Self-hosted CAN bus controller for Tesla Model S (pre-2021)**  
+> Orange Pi 4 Pro + CANable 2.0 USB-CAN + Flask REST API + Tailscale P2P
+
 <p align="center">
   <img src="https://img.shields.io/badge/status-unfinished-yellow" alt="unfinished">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
-  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-blue" alt="platform">
+  <img src="https://img.shields.io/badge/platform-Linux-blue" alt="platform">
   <img src="https://img.shields.io/badge/languages-4-orange" alt="lang-4">
+  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build">
+  <img src="https://img.shields.io/badge/PRs-welcome-8A2BE2" alt="prs">
 </p>
 
 <p align="center">
   <b><i>★ Let your Tesla always in control ★</i></b>
 </p>
 
-> ⚠️ **CAUTION** — This is an **unfinished prototype**. NOT a production-ready product. Use at your own risk. 🚧
+> ⚠️ **CAUTION** — **Unfinished prototype.** NOT production-ready. Use at your own risk. 🚧  
+> 📅 Estimated completion: ~3 months. Hardware BOM and wiring guide coming soon.
 
 <p align="center">
-  <img src="assets/app_ui.png" alt="Tesla Model S CAN Server App Preview" width="600">
+  <img src="assets/app_ui.png" alt="App Preview" width="600">
 </p>
 
 > **[ English ](#english)** · **[ 简体中文 ](#简体中文)** · **[ 日本語 ](#日本語)** · **[ 한국어 ](#한국어)**
