@@ -313,6 +313,53 @@ This project builds on the shoulders of these open-source communities:
 **Special thanks** to the reverse-engineering community on [Tesla Motors Club](https://teslamotorsclub.com) and the CAN bus hacking forums.
 
 <p align="center"><sub>Built with ☕ and stubbornness in Hong Kong SAR</sub></p>
+## 🗺️ Roadmap
+
+### Phase 1 — Core Control (Current) 🚧
+| Item | Status |
+|------|:------:|
+| CAN bus communication (CANable 2.0) | 🔜 Hardware ordered |
+| Vehicle body control (lock, unlock, frunk, trunk) | ✅ Code ready, needs hardware |
+| Lights, horn, windows control | ✅ Code ready, needs hardware |
+| HVAC, charge port, mirrors control | ✅ Code ready, needs vehicle verification |
+| NFC card reader integration | ✅ Code ready, needs reader hardware |
+| Real-time CAN data streaming to InfluxDB | 🔜 Coming |
+
+### Phase 2 — Analytics & Monitoring 📊
+| Item | Status |
+|------|:------:|
+| Battery SoC & health dashboard (React) | ✅ Built |
+| Grafana dashboards for historical analysis | 🔜 Need real data |
+| Driving efficiency analysis | 🔜 Need real data |
+| Battery degradation tracking | 🔜 Post-launch |
+
+### Phase 3 — Network & Access 🔗
+| Item | Status |
+|------|:------:|
+| 4 connection modes (Tailscale / DDNS / WiFi / BLE) | ✅ All implemented |
+| Cloudflare Tunnel support | ✅ Installed |
+| Pre-flashed SD card image | 🔜 Near production |
+| BLE beacon auto-discovery | 🔜 Coming |
+
+### Phase 4 — Native Apps 📱
+| Item | Status |
+|------|:------:|
+| PWA (current) | ✅ Live |
+| iOS IPA sideload | 🔜 Planned |
+| Android APK | 🔜 Planned |
+
+### Phase 5 — Production Release 🏁
+| Item | Status |
+|------|:------:|
+| Hardware BOM & wiring guide | ⏳ In progress |
+| Pre-built SD card image download | ⏳ In progress |
+| Vehicle safety disclaimer & documentation | ⏳ In progress |
+| **v1.0 stable release** | **🎯 Target: ~3 months** |
+
+> 💡 **Want to help?** PRs, issues, and ideas are all welcome. Pick any 🔜 item and start a discussion.
+
+---
+
 
 ---
 
