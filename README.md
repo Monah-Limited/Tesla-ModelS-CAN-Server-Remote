@@ -21,9 +21,53 @@
 
 ---
 
+## 📋 Overview
+
+<table>
+<tr>
+  <td width="33%" align="center">
+    <h3>⚡ Control</h3>
+    Lock/unlock · Frunk/trunk ·<br>
+    Lights · Horn · Windows ·<br>
+    HVAC · Charge port · Mirrors · NFC
+  </td>
+  <td width="33%" align="center">
+    <h3>📊 Monitor</h3>
+    Battery SoC · Range ·<br>
+    Diagnostics (CAN/BT/4G) ·<br>
+    VIN decoder · Tesla model DB
+  </td>
+  <td width="33%" align="center">
+    <h3>🔗 Connect</h3>
+    Tailscale P2P · DDNS ·<br>
+    WiFi · BLE · NFC card ·<br>
+    4G always-on
+  </td>
+</tr>
+</table>
+
+<table>
+<tr>
+  <td width="50%" align="center">
+    <h3>📱 App Platforms</h3>
+    🌐 <b>Web App (PWA)</b> — Live now<br>
+    🍎 <b>iOS App</b> — 🔜 Sideload IPA<br>
+    🤖 <b>Android APK</b> — 🔜 Download & install
+  </td>
+  <td width="50%" align="center">
+    <h3>🛠️ Hardware</h3>
+    🍊 Orange Pi 4 Pro (6GB)<br>
+    🔌 CANable 2.0 USB-CAN<br>
+    📡 4G USB Modem · 💳 NFC Reader
+  </td>
+</tr>
+</table>
+
+---
+
 ## 🚀 Quick Start
 
-### Hardware
+### Hardware Wiring
 
 ```
 Orange Pi 4 Pro          CANable 2.0              Tesla Model S (pre-2021)
@@ -40,7 +84,7 @@ curl -fsSL https://raw.githubusercontent.com/monah-studio/\
 Tesla-ModelS-CAN-Server-Remote/main/setup.sh | sudo bash
 ```
 
-The script auto-detects your hardware, installs dependencies, pulls the latest server code, and lets you choose between **Tailscale** or **Cloudflare Tunnel** for remote access.
+Auto-detects hardware, installs dependencies, pulls latest server code, and configures remote access.
 
 ### Manual Install
 
@@ -52,52 +96,71 @@ pip install flask flask-cors python-can
 python server.py
 ```
 
+Open `http://[pi-ip]:5000` in your browser.
+
 ---
 
 ## 🌐 Network Options
 
-Choose how users access the server:
+<table>
+<tr>
+  <th width="25%">Method</th>
+  <th width="25%">User needs</th>
+  <th width="25%">Works with VPN?</th>
+  <th width="25%">Setup</th>
+</tr>
+<tr>
+  <td><b>☁️ Cloudflare Tunnel</b> 🥇</td>
+  <td>Nothing — just browser</td>
+  <td align="center">✅</td>
+  <td><code>setup.sh</code> → option 1</td>
+</tr>
+<tr>
+  <td><b>🔗 Tailscale</b></td>
+  <td>Install Tailscale</td>
+  <td align="center">❌</td>
+  <td><code>setup.sh</code> → option 2</td>
+</tr>
+<tr>
+  <td><b>🏠 LAN</b></td>
+  <td>Same WiFi</td>
+  <td align="center">✅</td>
+  <td>No tunnel needed</td>
+</tr>
+</table>
 
-| Method | User needs | Works with 3rd party VPN | Setup |
-|--------|-----------|:------------------------:|:-----:|
-| **Cloudflare Tunnel** 🥇 | Nothing — just open browser | ✅ Yes | `setup.sh` → option 1 |
-| **Tailscale** | Install Tailscale app | ❌ No | `setup.sh` → option 2 |
-| LAN only | Same WiFi | ✅ Yes | No tunnel needed |
+### ☁️ Cloudflare Tunnel (Recommended)
 
-### Cloudflare Tunnel (recommended)
+No open ports, no public IP, no VPN. The Pi makes one outbound HTTPS connection.
 
 ```
-User phone (any network, any VPN)     Cloudflare Edge           Orange Pi (4G)
-         │                                  │                       │
-         │  tesla-xxx.yourdomain.com        │  cloudflared tunnel   │
-         ├─────────────────────────────────►│◄──────────────────────┤
-         │◄───────── JSON response ─────────┤                       │
+Phone (any network, any VPN)     Cloudflare Edge           Orange Pi (4G)
+         │                              │                       │
+         │  tesla.yourdomain.com        │  cloudflared tunnel   │
+         ├─────────────────────────────►│◄──────────────────────┤
+         │◄───────── JSON response ─────┤                       │
 ```
 
-No open ports, no public IP, no VPN needed. The Orange Pi makes a single outbound HTTPS connection.
-
-### Tailscale
+### 🔗 Tailscale
 
 ```
-User phone (Tailscale app)          Tailscale P2P VPN        Orange Pi (Tailscale)
-         │                                  │                       │
-         │◄─────── WireGuard tunnel ────────►                       │
+Phone (Tailscale)              Tailscale P2P              Orange Pi (Tailscale)
+         │                              │                       │
+         │◄─────── WireGuard tunnel ─────►                       │
 ```
-
-Simple, but users must install Tailscale and it conflicts with other VPNs.
 
 ---
 
 ## 📱 App Platforms
 
-> Currently a **Web App** (PWA) — works in any browser.  
-> Native **iOS App** and **Android APK** coming soon — download and install directly.
+> **Web App** (PWA) — works instantly in any browser.  
+> Native **iOS App** and **Android APK** coming — download and install directly.
 
 | Platform | Status | How to Access |
 |----------|--------|--------------|
-| 🌐 **Web App (PWA)** | ✅ Live now | `http://[Pi-IP]:5000` or `https://your-ddns-domain:5000` |
-| 🍎 **iOS App** | 🔜 Planned | Self-hosted IPA, sideload via AltStore / SideStore |
-| 🤖 **Android APK** | 🔜 Planned | Download `.apk` from GitHub Releases → install directly |
+| 🌐 **Web App (PWA)** | ✅ Live | `http://[Pi-IP]:5000` or `https://your-ddns.com:5000` |
+| 🍎 **iOS App** | 🔜 Planned | IPA sideload via AltStore |
+| 🤖 **Android APK** | 🔜 Planned | Download from GitHub Releases |
 
 ---
 
@@ -124,18 +187,18 @@ Simple, but users must install Tailscale and it conflicts with other VPNs.
 | `POST` | `/api/hvac_on` | ❄️ HVAC on | `0x302` |
 | `POST` | `/api/hvac_off` | ❄️ HVAC off | `0x302` |
 
-### Status & Data
+### 📊 Status & Data
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/ping` | Health check |
-| `GET` | `/api/status` | Full vehicle status (see below) |
-| `GET` | `/api/diagnostics` | System diagnostics (CAN, 4G, BT, Internet, Tailscale) |
+| `GET` | `/api/status` | Full vehicle status (SoC, gear, speed, charge) |
+| `GET` | `/api/diagnostics` | System: CAN, 4G, Bluetooth, Internet, Tailscale |
 | `POST` | `/api/decode-vin` | Decode VIN → model, year, battery, range |
 | `GET` | `/api/models` | All 39 Tesla models in database |
-| `GET` | `/api/config/all` | Colors, wheels, MCU, interior, body options |
+| `GET` | `/api/config/all` | Colors, wheels, MCU, interior, body styles |
 
-### `GET /api/status` Response
+### `GET /api/status` Example
 
 ```json
 {
@@ -143,186 +206,77 @@ Simple, but users must install Tailscale and it conflicts with other VPNs.
   "battery_soc": 75,
   "gear": "P",
   "speed_kmh": 0,
-  "drive_mode": "POWER_SAVE",
-  "charge_port": {
-    "state": "CLOSED",
-    "charging": false
-  },
-  "doors": {
-    "driver": "CLOSED",
-    "passenger": "CLOSED",
-    "rear_left": "CLOSED",
-    "rear_right": "CLOSED",
-    "locked": true
-  },
-  "windows": "CLOSED",
-  "ambient_temp_c": 25
+  "charge_port": { "state": "CLOSED", "charging": false }
 }
 ```
 
-### CAN IDs
-
-| ID | Function | Notes |
-|:--:|----------|-------|
-| `0x216` | Door lock/unlock | Body CAN — all pre-2021 Model S |
-| `0x217` | Front trunk | |
-| `0x218` | Rear trunk | |
-| `0x215` | Windows | |
-| `0x244` | Lights | Flash on/off |
-| `0x245` | Horn | |
-| `0x312` | Charge port | Open/close + status |
-| `0x210` | Mirrors | Fold/unfold |
-| `0x240` | Interior lights | |
-| `0x302` | HVAC | |
-| `0x102` | Drive mode | Status read |
-| `0x202` | Battery SOC | Status read |
-| `0x212` | Speed | Status read |
-| `0x222` | Gear | Status read |
-| `0x304` | Ambient temperature | Status read |
-
-> ⚠️ **CAN IDs may vary by firmware version.** If a command doesn't respond, use `candump can0` while pressing the physical button to discover your car's actual IDs.
-
 ---
 
-## 📱 PWA Frontend
-
-The app includes a mobile-first **Progressive Web App** (PWA) designed in **Xiaomi SU7 car app style**.
-
-### Layout
+## 🧱 Project Structure
 
 ```
-┌──────────────────────────────┐
-│  Model S 85D ▼     🔴未连接  │  ← Top Bar
-├──────────────────────────────┤
-│  ┌────────────────────────┐  │
-│  │  ═══ 蓝图特斯拉SVG ═══  │  │  ← Car Hero (230px)
-│  │  🔴 已锁                │  │
-│  └────────────────────────┘  │
-├──────────────────────────────┤
-│ ⭕ 75%  275km    25°C   P   │  ← Battery Bar
-├──────────────────────────────┤
-│        🔒 锁门               │  ← Lock Button
-├──────────────────────────────┤
-│  🚘 🚙 💡 📯  🪟 🪟 🔌 ❄️    │  ← Quick Controls
-├──────────────────────────────┤
-│  ⚡控制  📊状态  ⚙️设置      │  ← Bottom Dock
-└──────────────────────────────┘
-```
-
-### Features
-
-- **Xiaomi Design** — Dark theme `#1678FF` accent, glassmorphism cards, frosted blur
-- **Blueprint Car** — Engineering-style Tesla Model S SVG with grid, dimensions, annotations
-- **Battery Ring** — SVG circular gauge with color-coded SOC (green/amber/red)
-- **Range Estimate** — Converts SOC to estimated km (443 km @ 100%)
-- **Lock/Unlock** — One-tap toggle with haptic-style feedback
-- **16 Quick Controls** — Lock, unlock, frunk, trunk, flash, honk, windows, charge port, mirrors, interior lights, HVAC
-- **Add Vehicle** — VIN scan or manual config (model, trim, year, color, wheels, MCU, body, region)
-- **Multi-Vehicle** — Switch between saved vehicles, each with full config
-- **Diagnostics** — 6-card system health dashboard (CAN, 4G, BT, Tailscale, Internet)
-- **Settings** — Server URL, API token, Tailscale IP, DDNS domain, connection mode
-- **PWA** — Add to home screen, offline-capable, `manifest.json`
-
-### Screens
-
-| Tab | Content |
-|-----|---------|
-| ⚡ **Controls** | Car visual, battery, lock, quick action grid |
-| 📊 **Status** | 6-card diagnostics dashboard |
-| ⚙️ **Settings** | Server connection, API auth, tunnel config |
-
----
-
-## 🗄️ R2 Cloud Backup
-
-This project supports **Cloudflare R2** (S3-compatible) for backup and logging:
-
-```bash
-# Configure AWS CLI with R2 credentials
-aws configure set aws_access_key_id <R2_ACCESS_KEY>
-aws configure set aws_secret_access_key <R2_SECRET_KEY>
-
-# Upload logs
-aws s3 cp /var/log/tesla-control.log s3://tesla-can-bucket/logs/ --endpoint-url https://<ACCOUNT>.r2.cloudflarestorage.com
-```
-
-Use R2 for: CAN bus telemetry archives, configuration backups, firmware update distribution.
-
----
-
-## 🛠 Development
-
-```bash
-# Clone
-git clone https://github.com/monah-studio/Tesla-ModelS-CAN-Server-Remote.git
-cd Tesla-ModelS-CAN-Server-Remote
-
-# Setup dev environment
-python3 -m venv venv
-source venv/bin/activate
-pip install flask flask-cors python-can
-
-# Run locally (for testing without CAN hardware)
-python app/server.py
-
-# Or using Docker
-docker build -t tesla-can .
-docker run -p 5000:5000 tesla-can
-```
-
-### Project Structure
-
-```
-├── setup.sh               # One-click install
-├── wiring.md              # OBD pinout + CANable wiring
-├── ARCHITECTURE.md        # Multi-path network diagram
+Tesla-ModelS-CAN-Server-Remote/
 ├── app/
-│   ├── server.py          # Flask REST API (16 commands)
-│   ├── tesla_can.py       # CAN bus driver + status decoder
-│   ├── tesla_models.py    # 39 Tesla models + VIN decoder
-│   ├── static/
-│   │   └── index.html     # 📱 PWA — Xiaomi-style UI (1200+ lines)
-│   └── tools/
-│       └── can_sniffer.py # CAN ID discovery
+│   ├── server.py           # Flask REST API
+│   ├── tesla_can.py        # CAN bus driver (socketcan)
+│   ├── tesla_models.py     # 39 Tesla models + VIN decoder
+│   ├── nfc.py              # NFC card reader daemon
+│   └── static/
+│       ├── index.html      # 📱 Main PWA: control panel
+│       └── dashboard.html  # 📊 Battery analytics (React)
 ├── network/
-│   └── setup_4g_modem.sh  # 4G modem helper
-└── assets/                # App screenshots
+│   ├── setup_4g_modem.sh   # 4G/5G configuration
+│   ├── setup_network.sh    # Tailscale + DDNS + BLE
+│   └── setup_data_stack.sh # Grafana + InfluxDB + Tunnel
+├── setup.sh                # One-click installer
+├── wiring.md               # Hardware wiring guide
+└── assets/                 # Screenshots and images
 ```
 
 ---
 
-## 🩺 Diagnostics Panel
+## 📅 Timeline
 
-The PWA frontend includes a 6-card diagnostics dashboard:
-
-| Card | What it checks |
-|------|---------------|
-| 🔌 CAN Bus | `can0` interface UP/DOWN + driver status |
-| 📡 4G/5G | Cellular interface + internet reachability |
-| 📶 Bluetooth | hci0 status + BD address |
-| 🔗 Tailscale | `100.x.x.x` IP address |
-| 🖥️ Orange Pi | HTTP 200 response |
-| 🌐 Internet | ping 8.8.8.8 |
+> ⏳ **Estimated completion: ~3 months remaining.**  
+> Prototype in active development. CANable 2.0 ordered for testing.  
+> Hardware BOM and detailed wiring guide coming once vehicle-verified.
 
 ---
 
-## ⚠️ Known Pitfalls
+## 🙏 Credits / 致谢
 
-- **Orange Pi OS (A733) kernel lacks CAN** — Use CANable 2.0 USB CAN adapter
-- **Tailscale on Orange Pi OS crashes** — Fix: `--tun=userspace-networking`
-- **CAN bitrate is 125 kbps** (not 500k) — Tesla Body CAN
-- **OBD powers the Pi continuously** — Add a timer relay or voltage cutoff for 12V battery protection
-- **CAN IDs vary by MCU firmware** — Always sniff your own car first
+This project builds on the shoulders of these open-source communities:
+
+| Project | Role |
+|---------|------|
+| [**Open Vehicles**](https://docs.openvehicles.com) | Original open-source Tesla CAN project — massive inspiration |
+| [**CANable**](https://canable.io) | USB-to-CAN adapter hardware & firmware |
+| [**candleLight firmware**](https://github.com/candle-usb/candleLight_fw) | Open-source CAN firmware on CANable |
+| [**python-can**](https://github.com/hardbyte/python-can) | Python CAN library |
+| [**Flask**](https://flask.palletsprojects.com) | Web framework |
+| [**Tailscale**](https://tailscale.com) | Zero-config P2P VPN |
+| [**InfluxDB**](https://www.influxdata.com) | Time-series data store |
+| [**Grafana**](https://grafana.com) | Battery analytics dashboards |
+| [**Telegraf**](https://www.influxdata.com/time-series-platform/telegraf/) | Metrics collection |
+| [**Cloudflare Tunnel**](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) | HTTPS tunnel without VPN |
+| [**React**](https://react.dev) + [**Recharts**](https://recharts.org) | Dashboard UI |
+| [**Material Design 3**](https://m3.material.io) | Design system |
+| [**Orange Pi 4 Pro**](http://www.orangepi.org) | SBC — 6GB, 3 TOPS |
+| [**Armbian**](https://www.armbian.com) | Linux distribution |
+| [**OpenGarages**](https://opengarages.org) | Vehicle protocol reverse-engineering community |
+| [**Hermes Agent**](https://github.com/NousResearch/hermes-agent) | AI agent that built large parts of this project |
+| [**Namecheap**](https://namecheap.com) | DDNS for remote.openfrunk.com |
+
+**Special thanks** to the reverse-engineering community on [Tesla Motors Club](https://teslamotorsclub.com) and the CAN bus hacking forums.
+
+<p align="center"><sub>Built with ☕ and stubbornness in Hong Kong SAR</sub></p>
 
 ---
 
-## License
+## Story / 故事 / 物語 / 이야기
 
-MIT
+**[ English ](#english) · [ 简体中文 ](#简体中文) · [ 日本語 ](#日本語) · [ 한국어 ](#한국어)**
 
----
-
-<a name="english"></a>
 ## 🇺🇸 The Story
 
 I'm a Github-native open-source contributor with triple backgrounds: law, pure mathematics and full-stack engineering. Outside of coding and protocol reverse-engineering, I also work as an early-stage tech startup angel investor. I'm used to solving hardware and software ecosystem deadlocks with logical mathematical modeling, underlying network protocol analysis and legal compliance verification. I'm releasing this self-hosted Tesla vehicle control project not for showing off tech skills, but for a real, helpless user-side rescue against official service restrictions.
