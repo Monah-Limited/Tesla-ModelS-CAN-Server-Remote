@@ -80,7 +80,7 @@ Download the official image and flash to a microSD card (16GB+):
 
 | Download | Link |
 |----------|------|
-| 🍊 Orange Pi OS 1.0.6 Jammy Server | [orangepi.org/download](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/service-and-support/Orange-Pi-4-LTS.html) |
+| 🍊 Orange Pi OS 1.0.6 Jammy Server | [orangepi.org/download](http://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/service-and-support/Orange-Pi-4-Pro.html) |
 | 🔧 Balena Etcher (flash tool) | [balena.io/etcher](https://www.balena.io/etcher) |
 
 1. Insert microSD into your computer
