@@ -616,10 +616,6 @@ Tesla-ModelS-CAN-Server-Remote/
 
 ---
 
-## 👤 About the Author
-
-Tim holds a law degree, an actuarial science degree, and is a self-taught programmer with a passion for Vibe Coding and AI.
-
 This repo is a conversation starter, not a product pitch. PRs welcome. Issues welcome. Ideas welcome. Let's build together.
 
 ---
