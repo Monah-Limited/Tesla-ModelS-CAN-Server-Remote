@@ -139,10 +139,16 @@ Open `http://[pi-ip]:5000` in your browser.
   <td><code>setup.sh</code> → option 2</td>
 </tr>
 <tr>
-  <td><b>🏠 LAN</b></td>
-  <td>Same WiFi</td>
+  <td><b>🏠 LAN (WiFi)</b></td>
+  <td>Same network</td>
   <td align="center">✅</td>
   <td>No tunnel needed</td>
+</tr>
+<tr>
+  <td><b>📶 Bluetooth (BLE)</b></td>
+  <td>Nothing — auto-discover</td>
+  <td align="center">✅</td>
+  <td>Pi broadcasts beacon</td>
 </tr>
 </table>
 
@@ -165,6 +171,21 @@ Phone (Tailscale)              Tailscale P2P              Orange Pi (Tailscale)
          │                              │                       │
          │◄─────── WireGuard tunnel ─────►                       │
 ```
+
+Simple, but users must install Tailscale and it conflicts with other VPNs.
+
+### 📶 Bluetooth (BLE)
+
+```
+Phone (any browser)          BLE beacon              Orange Pi 4 Pro
+         │                              │                       │
+         │  Tap "Scan" in app           │  Advertises IP        │
+         ├─────────────────────────────►│◄──────────────────────┤
+         │◄──── BLE provides IP ────────┤                       │
+         │────── HTTP request ────────────────────────────────►│
+```
+
+No setup needed. Orange Pi broadcasts a BLE beacon (`TeslaControl-` prefix) containing its IP address. Phone's Web Bluetooth auto-discovers nearby vehicles.
 
 ---
 
