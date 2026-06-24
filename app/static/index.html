@@ -2,1406 +2,612 @@
 <html lang="zh-HK">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
 <title>Tesla Local Control</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 <style>
-  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  :root{--bg:#000;--surface:#0d0d0d;--surface2:#141414;--surface3:#1c1c1e;--card:rgba(255,255,255,.04);--cardBorder:rgba(255,255,255,.06);--onSurface:#fff;--onSurfaceDim:#8e8e93;--onSurfaceMuted:#48484a;--accent:#1678FF;--accentDim:rgba(22,120,255,.12);--green:#30d158;--greenDim:rgba(48,209,88,.12);--red:#ff453a;--redDim:rgba(255,69,58,.12);--amber:#ff9f0a;--radius:16px;--radiusSm:12px;--radiusXs:8px;--radiusPill:100px}
-  html,body{height:100%;-webkit-font-smoothing:antialiased}
-  body{font-family:-apple-system,'Inter','PingFang HK','Helvetica Neue',sans-serif;background:var(--bg);color:var(--onSurface);overflow-x:hidden}
-  ::-webkit-scrollbar{width:0;height:0}
-  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 20px;padding-top:env(safe-area-inset-top,4px);padding-bottom:calc(env(safe-area-inset-bottom,16px)+90px)}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050505;
+  --surface:#0d0d0d;
+  --surface2:#141416;
+  --card:rgba(255,255,255,.045);
+  --cardBorder:rgba(255,255,255,.07);
+  --glass:rgba(255,255,255,.06);
+  --onSurface:#fff;
+  --onSurfaceDim:#8e8e93;
+  --onSurfaceMuted:#48484a;
+  --accent:#4490ff;
+  --accentDim:rgba(68,144,255,.12);
+  --green:#34c759;
+  --greenDim:rgba(52,199,89,.15);
+  --red:#ff453a;
+  --redDim:rgba(255,69,58,.12);
+  --amber:#ff9f0a;
+  --radius:16px;
+  --radiusSm:12px;
+  --radiusXs:8px;
+  --radiusPill:100px;
+}
+html,body{height:100%;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,'Inter','PingFang HK','Helvetica Neue',sans-serif;background:var(--bg);color:var(--onSurface);overflow-x:hidden}
+::-webkit-scrollbar{width:0}
+.app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px;padding-top:env(safe-area-inset-top,4px);padding-bottom:calc(env(safe-area-inset-bottom,16px)+100px)}
 
-  /* ── Top Bar ── */
-  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
-  .top-bar .tb-left{display:flex;align-items:center;gap:6px}
-  .top-bar .tb-vehicle{font-size:17px;font-weight:700;letter-spacing:-.3px}
-  .top-bar .tb-vehicle .arrow{font-size:9px;color:var(--onSurfaceDim);margin-left:3px}
-  .top-bar .tb-conn{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusPill);padding:3px 8px 3px 5px;font-size:10px;font-weight:500;color:var(--onSurfaceDim)}
-  .top-bar .conn-dot{width:5px;height:5px;border-radius:50%}
-  .top-bar .conn-dot.online{background:var(--green)}
-  .top-bar .conn-dot.offline{background:var(--onSurfaceMuted)}
+/* ── Status Bar ── */
+.st-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 0;height:28px}
+.st-bar .st-time{font-size:13px;font-weight:600;letter-spacing:.2px}
+.st-bar .st-right{display:flex;align-items:center;gap:6px}
+.st-bar .st-conn{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:var(--onSurfaceDim)}
+.st-bar .st-dot{width:5px;height:5px;border-radius:50%}
+.st-bar .st-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(52,199,89,.4)}
+.st-bar .st-dot.off{background:var(--onSurfaceMuted)}
+.st-bar .st-dot.err{background:var(--red)}
 
-  /* ── Car Hero Area ── */
-  .car-hero{position:relative;height:230px;display:flex;align-items:center;justify-content:center;margin:0 -20px;overflow:hidden}
-  .car-hero .glow{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:280px;height:120px;border-radius:50%;background:radial-gradient(ellipse,rgba(22,120,255,.06) 0%,transparent 70%);transition:all .6s ease}
-  .car-hero .glow.unlocked{background:radial-gradient(ellipse,rgba(48,209,88,.1) 0%,transparent 70%)}
-  .car-hero .glow.locked{background:radial-gradient(ellipse,rgba(255,69,58,.06) 0%,transparent 70%)}
-  .car-svg-wrap{position:relative;width:320px;height:175px}
-  .car-svg-wrap.shake{animation:carShake .3s}
-  @keyframes carShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-  .car-svg-wrap.frunk-open{transform:translateY(-4px)}
-  .car-svg-wrap.trunk-open{transform:translateY(-3px)}
-  .car-svg-wrap.honk{animation:carHonk .15s 3}
-  @keyframes carHonk{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+/* ── Vehicle Switcher ── */
+.vs-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 0 8px}
+.vs-bar .vs-left{display:flex;align-items:center;gap:6px}
+.vs-bar .vs-car{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.vs-bar .vs-arrow{font-size:8px;color:var(--onSurfaceDim);margin-left:2px}
+.vs-bar .vs-add{width:30px;height:30px;border-radius:50%;background:var(--card);border:1px solid var(--cardBorder);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:300;cursor:pointer;color:var(--onSurfaceDim);transition:all .15s}
+.vs-bar .vs-add:active{transform:scale(.88);background:var(--surface3)}
 
-  /* ── Car State Badge ── */
-  .car-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;color:var(--onSurfaceDim);display:flex;align-items:center;gap:4px;border:1px solid rgba(255,255,255,.06);z-index:2}
-  .car-badge .bd-dot{width:5px;height:5px;border-radius:50%}
+/* ── Car Hero ── */
+.car-hero{position:relative;height:240px;display:flex;align-items:center;justify-content:center;margin:0 -16px;overflow:hidden}
+.car-hero .glow{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:300px;height:140px;border-radius:50%;background:radial-gradient(ellipse,rgba(68,144,255,.06) 0%,transparent 70%);transition:all .6s}
+.car-hero .glow.g-unlock{background:radial-gradient(ellipse,rgba(52,199,89,.08) 0%,transparent 70%)}
+.car-hero .glow.g-lock{background:radial-gradient(ellipse,rgba(255,69,58,.05) 0%,transparent 70%)}
+.car-wrap{position:relative;width:320px;height:170px}
+.car-wrap.shake{animation:shk .3s}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.car-wrap.hop{animation:hop .12s 3}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.car-hero .car-model{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:500;color:var(--onSurfaceMuted);background:rgba(0,0,0,.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:3px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.04)}
 
-  /* ── Battery Bar ── */
-  .batt-bar{display:flex;align-items:center;gap:12px;padding:4px 0 6px;margin-top:-4px}
-  .batt-bar .bb-left{display:flex;align-items:center;gap:10px}
-  .batt-bar .batt-ring{position:relative;width:44px;height:44px;flex-shrink:0}
-  .batt-bar .batt-ring svg{transform:rotate(-90deg)}
-  .batt-bar .batt-ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-  .batt-bar .range-wrap{display:flex;flex-direction:column}
-  .batt-bar .range-wrap .range{font-size:22px;font-weight:700;letter-spacing:-.5px}
-  .batt-bar .range-wrap .range-unit{font-size:11px;font-weight:500;color:var(--onSurfaceDim);margin-left:1px}
-  .batt-bar .range-wrap .sub{font-size:10px;color:var(--onSurfaceMuted)}
-  .batt-bar .bb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-  .batt-bar .bb-stat{text-align:center}
-  .batt-bar .bb-stat .val{font-size:14px;font-weight:600}
-  .batt-bar .bb-stat .lbl{font-size:9px;color:var(--onSurfaceMuted);margin-top:0}
-  .lock-section{padding:2px 0 6px}
-  .lock-btn{width:100%;padding:16px;border-radius:var(--radius);border:none;background:var(--card);border:1px solid var(--cardBorder);font-family:inherit;font-size:16px;font-weight:600;color:var(--onSurface);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;-webkit-tap-highlight-color:transparent}
-  .lock-btn.locked{background:var(--redDim);border-color:rgba(255,69,58,.2);color:var(--red)}
-  .lock-btn.unlocked{background:var(--greenDim);border-color:rgba(48,209,88,.2);color:var(--green)}
-  .lock-btn .icon{font-size:22px}
-  .lock-btn:active{transform:scale(.98)}
+/* ── Battery Card ── */
+.c-batt{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radius);padding:16px;margin:2px 0 12px;display:flex;align-items:center;gap:14px}
+.c-batt .cb-icon{font-size:26px}
+.c-batt .cb-main{flex:1}
+.c-batt .cb-num{font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1}
+.c-batt .cb-num.g{color:var(--green)}
+.c-batt .cb-num.a{color:var(--amber)}
+.c-batt .cb-num.r{color:var(--red)}
+.c-batt .cb-bar{height:4px;border-radius:2px;background:var(--surface3);margin:6px 0 3px;overflow:hidden}
+.c-batt .cb-bar .cb-fill{height:100%;border-radius:2px;transition:width .5s}
+.c-batt .cb-bar .cb-fill.g{background:var(--green)}
+.c-batt .cb-bar .cb-fill.a{background:var(--amber)}
+.c-batt .cb-bar .cb-fill.r{background:var(--red)}
+.c-batt .cb-sub{display:flex;justify-content:space-between;font-size:10px;color:var(--onSurfaceMuted)}
+.c-batt .cb-stat{text-align:right}
+.c-batt .cb-stat .sv{font-size:16px;font-weight:700}
+.c-batt .cb-stat .sl{font-size:9px;color:var(--onSurfaceMuted)}
 
-  /* ── Quick Controls ── */
-  .section-label{font-size:15px;font-weight:700;padding:16px 0 10px}
-  .quick-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-  .qc{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusSm);padding:14px 4px 10px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none}
-  .qc:active{background:var(--surface3);transform:scale(.94)}
-  .qc .icon{font-size:22px;display:block;margin-bottom:4px;line-height:1.2}
-  .qc .label{font-size:11px;font-weight:500;color:var(--onSurfaceDim);letter-spacing:.2px}
+/* ── Lock Button ── */
+.lock-area{padding:0 0 14px}
+.lock-btn{width:100%;padding:18px;border-radius:var(--radius);border:none;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden}
+.lock-btn.l{background:var(--redDim);color:var(--red);border:1px solid rgba(255,69,58,.2)}
+.lock-btn.u{background:var(--greenDim);color:var(--green);border:1px solid rgba(52,199,89,.2)}
+.lock-btn .lk-icon{font-size:24px}
+.lock-btn:active{transform:scale(.98)}
+.lock-btn .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.1);transform:scale(0);animation:rp .6s}
+@keyframes rp{to{transform:scale(4);opacity:0}}
 
-  /* ── Vehicle List ── */
-  .dropdown-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);display:none;animation:fadeIn .2s}
-  .dropdown-overlay.show{display:block}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  .dropdown-sheet{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,16px)+16px);z-index:201;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:70vh;overflow-y:auto}
-  .dropdown-sheet.show{transform:translateY(0)}
-  .dropdown-sheet .handle{width:36px;height:4px;border-radius:2px;background:var(--surface3);margin:0 auto 16px}
-  .dropdown-sheet .title{font-size:16px;font-weight:700;margin-bottom:12px}
-  .dropdown-item{display:flex;align-items:center;gap:12px;padding:14px 12px;border-radius:var(--radiusSm);cursor:pointer;margin-bottom:4px}
-  .dropdown-item:active{background:var(--surface2)}
-  .dropdown-item.active{background:var(--accentDim);border:1px solid rgba(22,120,255,.15)}
-  .dropdown-item .di-icon{font-size:28px;width:40px;text-align:center}
-  .dropdown-item .di-info{flex:1}
-  .dropdown-item .di-name{font-size:14px;font-weight:600}
-  .dropdown-item .di-sub{font-size:11px;color:var(--onSurfaceDim);margin-top:2px}
-  .dropdown-item .di-check{color:var(--accent);font-size:14px;font-weight:700}
+/* ── Quick Controls Grid ── */
+.sec-t{font-size:13px;font-weight:600;color:var(--onSurfaceDim);padding:6px 2px 8px;letter-spacing:.3px}
+.q-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+.qc{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusSm);padding:14px 6px 10px;text-align:center;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.qc:active{transform:scale(.94);background:var(--surface2)}
+.qc .qi{font-size:24px;display:block;margin-bottom:3px;line-height:1.2}
+.qc .ql{font-size:10px;font-weight:500;color:var(--onSurfaceDim);letter-spacing:.2px}
 
-  .v-item{margin-bottom:4px}
-  .v-item .v-info{display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radiusSm);cursor:pointer}
-  .v-item .v-info:active{background:var(--surface2)}
-  .v-item .v-icon{font-size:26px;width:36px;text-align:center}
-  .v-item .v-name{font-size:14px;font-weight:600}
-  .v-item .v-sub{font-size:11px;color:var(--onSurfaceDim);margin-top:1px}
-  .v-item .v-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--accentDim);color:var(--accent);margin-left:auto}
-  .v-item .v-del{opacity:0;transition:opacity .15s;font-size:16px;cursor:pointer;color:var(--onSurfaceMuted);padding:4px}
-  .v-item:hover .v-del,.v-item .v-del.show{opacity:1}
+/* ── Climate Card ── */
+.c-clim{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radius);padding:16px;margin:8px 0}
+.c-clim .cc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.c-clim .cc-head .cch-l{font-size:13px;font-weight:600}
+.c-clim .cc-head .cch-r{font-size:11px;color:var(--accent);font-weight:500}
+.c-clim .cc-mid{display:flex;align-items:center;justify-content:center;gap:20px;padding:6px 0}
+.c-clim .cc-temp{font-size:48px;font-weight:200;letter-spacing:-2px;line-height:1}
+.c-clim .cc-temp sup{font-size:20px;top:-12px;position:relative}
+.c-clim .cc-ctrl{display:flex;gap:6px}
+.c-clim .cc-ctrl button{width:40px;height:40px;border-radius:50%;border:1px solid var(--cardBorder);background:var(--surface2);color:var(--onSurface);font-size:18px;cursor:pointer;transition:all .12s}
+.c-clim .cc-ctrl button:active{transform:scale(.9);background:var(--accentDim)}
+.c-clim .cc-row{display:flex;gap:6px;margin-top:8px}
+.c-clim .cc-chip{flex:1;padding:8px;border-radius:var(--radiusXs);background:var(--surface2);border:1px solid var(--cardBorder);text-align:center;font-size:11px;font-weight:500;color:var(--onSurfaceDim);cursor:pointer;transition:all .1s}
+.c-clim .cc-chip:active{background:var(--accentDim);color:var(--accent)}
 
-  /* ── Add Vehicle ── */
-  .add-form{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radius);padding:20px;margin-top:12px}
-  .add-form .af-title{font-size:16px;font-weight:700;margin-bottom:16px}
-  .add-form label{font-size:11px;font-weight:600;color:var(--onSurfaceDim);display:block;margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:.3px}
-  .add-form label:first-of-type{margin-top:0}
-  .add-form input,.add-form select{width:100%;background:var(--surface3);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);padding:12px 14px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit}
-  .add-form input:focus{border-color:var(--accent)}
-  .add-form .vin-row{display:flex;gap:8px}
-  .add-form .vin-row input{flex:1;font-family:'SF Mono','Menlo',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase}
-  .add-form .vin-row button{background:var(--accent);border:none;border-radius:var(--radiusXs);padding:0 16px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
-  .add-form .vin-row button:active{opacity:.8}
-  .add-form .add-tabs{display:flex;gap:6px;margin-bottom:12px}
-  .add-form .add-tab{flex:1;padding:8px;border:1px solid var(--cardBorder);border-radius:var(--radiusXs);background:var(--surface3);color:var(--onSurfaceDim);font-size:12px;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;transition:all .2s}
-  .add-form .add-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .add-form .add-tab:active{opacity:.8}
-  .add-form .vin-result{padding:10px;border-radius:var(--radiusXs);font-size:12px;line-height:1.6;display:none;margin-top:8px}
-  .add-form .vin-result.show{display:block}
-  .add-form .vin-result.success{background:var(--greenDim);border:1px solid rgba(48,209,88,.15)}
-  .add-form .vin-result.error{background:var(--redDim);border:1px solid rgba(255,69,58,.15)}
-  .add-form .add-row{display:flex;gap:10px;margin-top:4px}
-  .add-form .add-col{flex:1;min-width:0}
-  .add-form .add-col select{width:100%}
-  .add-form .add-col .color-picker{flex-wrap:wrap}
-  .add-form .color-picker{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-  .add-form .color-chip{width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .12s}
-  .add-form .color-chip.active{border-color:var(--onSurface);transform:scale(1.1)}
-  .add-form .btn-save{width:100%;padding:14px;border-radius:var(--radiusSm);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:16px}
-  .add-form .btn-save:active{opacity:.8}
-  .add-form .btn-cancel{width:100%;padding:10px;border:none;background:none;color:var(--onSurfaceDim);font-size:12px;cursor:pointer;font-family:inherit;margin-top:8px}
+/* ── Status Rows ── */
+.stat-row{display:flex;gap:6px;margin:10px 0}
+.stat-row .sr{flex:1;background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);padding:10px 8px;text-align:center}
+.stat-row .sr .sv{font-size:15px;font-weight:700}
+.stat-row .sr .sl{font-size:9px;color:var(--onSurfaceMuted);margin-top:2px}
 
-  /* ── Settings ── */
-  .settings-group{margin-top:8px}
-  .settings-group label{font-size:11px;color:var(--onSurfaceMuted);display:block;margin-bottom:4px;margin-top:10px}
-  .settings-group input{width:100%;background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);padding:12px 14px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit;margin-bottom:4px}
-  .settings-group input:focus{border-color:var(--accent)}
-  .mode-selector{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
-  .mode-chip{padding:10px;border-radius:var(--radiusXs);background:var(--card);border:1px solid var(--cardBorder);text-align:center;font-size:11px;font-weight:500;color:var(--onSurfaceDim);cursor:pointer;transition:all .15s}
-  .mode-chip.active{background:var(--accentDim);border-color:var(--accent);color:var(--accent)}
+/* ── Bottom Dock ── */
+.b-dock{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;padding:6px 16px calc(env(safe-area-inset-bottom,12px)+6px);background:rgba(0,0,0,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.05);z-index:100;display:flex;justify-content:space-around;align-items:center}
+.b-dock .dk-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;background:none;border:none;color:var(--onSurfaceMuted);font-family:inherit;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;position:relative}
+.b-dock .dk-item .dki{font-size:22px}
+.b-dock .dk-item .dkl{font-size:9px;font-weight:500}
+.b-dock .dk-item.active .dkl{color:var(--accent);font-weight:600}
+.b-dock .dk-item.active .dki{color:var(--accent)}
 
-  /* ── Diagnostics ── */
-  .diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
-  .diag-card{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusSm);padding:14px;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
-  .diag-card .dc-row{display:flex;align-items:center;justify-content:space-between}
-  .diag-card .dc-icon{font-size:18px;width:28px}
-  .diag-card .dc-name{font-size:11px;font-weight:600;color:var(--onSurfaceDim)}
-  .diag-card .dc-indicator{width:8px;height:8px;border-radius:50%}
-  .diag-card .dc-indicator.ok{background:var(--green);box-shadow:0 0 6px rgba(48,209,88,.4)}
-  .diag-card .dc-indicator.warn{background:var(--amber);box-shadow:0 0 6px rgba(255,159,10,.4)}
-  .diag-card .dc-indicator.error{background:var(--red);box-shadow:0 0 6px rgba(255,69,58,.4)}
-  .diag-card .dc-indicator.offline{background:var(--onSurfaceMuted)}
-  .diag-card .dc-status{font-size:10px;color:var(--onSurfaceMuted);margin-top:4px;padding-left:28px;line-height:1.4}
-  .diag-card .dc-pulse{position:absolute;width:8px;height:8px;border-radius:50%;top:14px;right:14px;animation:pulse 2s infinite}
-  .diag-card .dc-pulse.ok{background:var(--green)}.diag-card .dc-pulse.warn{background:var(--amber)}.diag-card .dc-pulse.error{background:var(--red)}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 6px transparent}100%{box-shadow:0 0 0 0 transparent}}
-  .diag-card .dc-pulse.ok{color:var(--green)}.diag-card .dc-pulse.warn{color:var(--amber)}.diag-card .dc-pulse.error{color:var(--red)}
-  .diag-summary{display:flex;gap:6px;justify-content:center;padding:8px 0 4px}
-  .diag-summary .ds-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;color:var(--onSurfaceMuted);padding:4px 10px;border-radius:20px;background:var(--card);border:1px solid var(--cardBorder)}
-  .diag-summary .ds-item .ds-dot{width:5px;height:5px;border-radius:50%}
-  .diag-summary .ds-item .ds-dot.ok{background:var(--green)}
-  .diag-summary .ds-item .ds-dot.warn{background:var(--amber)}
-  .diag-summary .ds-item .ds-dot.error{background:var(--red)}
+/* ── Panels ── */
+.panel{display:none;padding-top:2px}
+.panel.active{display:block}
 
-  /* ── Bottom Dock ── */
-  .bottom-dock{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;padding:6px 20px calc(env(safe-area-inset-bottom,8px)+6px);background:rgba(0,0,0,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.06);z-index:100}
-  .dock-grid{display:flex;justify-content:space-around;align-items:center}
-  .dock-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 16px;cursor:pointer;border:none;background:none;color:var(--onSurfaceMuted);font-family:inherit;font-size:10px;font-weight:500;transition:color .15s;border-radius:var(--radiusXs)}
-  .dock-item .icon{font-size:22px;line-height:1.2}
-  .dock-item.active{color:var(--accent)}
-  .dock-item:active{background:var(--surface2)}
+/* ── Dropdown / Overlays ── */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);display:none;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.overlay.show{display:block}
+.sheet{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,16px)+16px);z-index:201;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:78vh;overflow-y:auto}
+.sheet.show{transform:translateY(0)}
+.sheet .sh-h{width:36px;height:4px;border-radius:2px;background:var(--surface3);margin:0 auto 16px}
+.sheet .sh-t{font-size:17px;font-weight:700;margin-bottom:14px}
+.v-item{display:flex;align-items:center;gap:12px;padding:14px 10px;border-radius:var(--radiusSm);cursor:pointer;margin-bottom:4px}
+.v-item:active{background:var(--surface2)}
+.v-item.on{background:var(--accentDim);border:1px solid rgba(68,144,255,.12)}
+.v-item .vi-icon{font-size:26px;width:36px;text-align:center}
+.v-item .vi-info{flex:1}
+.v-item .vi-n{font-size:14px;font-weight:600}
+.v-item .vi-s{font-size:11px;color:var(--onSurfaceDim);margin-top:1px}
+.v-item .vi-check{color:var(--accent);font-size:13px;font-weight:700;display:none}
+.v-item.on .vi-check{display:block}
+.v-item .vi-del{opacity:0;transition:opacity .15s;font-size:15px;cursor:pointer;color:var(--onSurfaceMuted);padding:4px}
+.v-item:hover .vi-del,.v-item .vi-del.show{opacity:1}
 
-  /* ── Panels ── */
-  .panel{display:none;animation:fadeUp .25s ease}
-  .panel.active{display:block}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ── Add Form ── */
+.add-f{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radius);padding:20px;margin-top:10px}
+.add-f label{font-size:10px;font-weight:600;color:var(--onSurfaceDim);display:block;margin-bottom:3px;margin-top:10px;text-transform:uppercase;letter-spacing:.4px}
+.add-f label:first-of-type{margin-top:0}
+.add-f input,.add-f select{width:100%;background:var(--surface2);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);padding:11px 12px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit;transition:border-color .12s}
+.add-f input:focus{border-color:var(--accent)}
+.add-f .vin-r{display:flex;gap:6px}
+.add-f .vin-r input{flex:1;font-family:'SF Mono','Menlo',monospace;font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.add-f .vin-r button{background:var(--accent);border:none;border-radius:var(--radiusXs);padding:0 14px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .1s}
+.add-f .vin-r button:active{opacity:.7}
+.add-f .vin-res{padding:10px;border-radius:var(--radiusXs);font-size:12px;line-height:1.6;display:none;margin-top:6px}
+.add-f .vin-res.show{display:block}
+.add-f .vin-res.ok{background:var(--greenDim);border:1px solid rgba(52,199,89,.12)}
+.add-f .vin-res.bad{background:var(--redDim);border:1px solid rgba(255,69,58,.12)}
+.add-f .cp{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.add-f .cp .cc{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .1s}
+.add-f .cp .cc.on{border-color:var(--onSurface);transform:scale(1.1)}
+.add-f .btn-s{width:100%;padding:14px;border-radius:var(--radiusXs);border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:14px;transition:opacity .12s}
+.add-f .btn-s:active{opacity:.8}
+.add-f .btn-c{width:100%;padding:10px;border:none;background:none;color:var(--onSurfaceDim);font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px}
 
-  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%)translateY(60px);background:var(--surface3);padding:10px 20px;border-radius:100px;font-size:13px;font-weight:500;color:var(--onSurface);opacity:0;transition:all .3s;pointer-events:none;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.5);white-space:nowrap}
-  .toast.show{opacity:1;transform:translateX(-50%)translateY(0)}
+/* ── Diagnostics ── */
+.dg-s{display:flex;gap:4px;justify-content:center;padding:6px 0 4px;flex-wrap:wrap}
+.dg-s .ds{display:flex;align-items:center;gap:3px;font-size:9px;font-weight:500;color:var(--onSurfaceMuted);padding:3px 8px;border-radius:12px;background:var(--card)}
+.dg-s .ds .dd{width:4px;height:4px;border-radius:50%}
+.dg-s .ds .dd.ok{background:var(--green)}
+.dg-s .ds .dd.er{background:var(--red)}
+.dg-s .ds .dd.wa{background:var(--amber)}
+.dg-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:2px}
+.dg-card{background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusSm);padding:12px;position:relative}
+.dg-card .dgr{display:flex;align-items:center;justify-content:space-between}
+.dg-card .dgi{font-size:16px;width:24px}
+.dg-card .dgn{font-size:10px;font-weight:600;color:var(--onSurfaceDim)}
+.dg-card .dgd{width:8px;height:8px;border-radius:50%;transition:all .3s}
+.dg-card .dgd.ok{background:var(--green);box-shadow:0 0 6px rgba(52,199,89,.3)}
+.dg-card .dgd.er{background:var(--red);box-shadow:0 0 6px rgba(255,69,58,.3)}
+.dg-card .dgd.wa{background:var(--amber);box-shadow:0 0 6px rgba(255,159,10,.3)}
+.dg-card .dgd.off{background:var(--onSurfaceMuted)}
+.dg-card .dgt{font-size:9px;color:var(--onSurfaceMuted);margin-top:3px;padding-left:24px;word-break:break-all;line-height:1.3}
+.dg-card .dg-p{position:absolute;width:8px;height:8px;border-radius:50%;top:12px;right:12px;animation:pl 2s infinite}
+.dg-card .dg-p.ok{background:var(--green)}
+.dg-card .dg-p.er{background:var(--red)}
+@keyframes pl{0%{box-shadow:0 0 0 0 currentColor}70%{box-shadow:0 0 0 5px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.dg-card .dg-p.ok{color:var(--green)}.dg-card .dg-p.er{color:var(--red)}
+
+/* ── Settings ── */
+.sg label{font-size:10px;font-weight:600;color:var(--onSurfaceDim);display:block;margin-bottom:3px;margin-top:10px;text-transform:uppercase;letter-spacing:.4px}
+.sg input{width:100%;background:var(--surface2);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);padding:11px 12px;color:var(--onSurface);font-size:13px;outline:none;font-family:inherit;margin-bottom:4px}
+.sg input:focus{border-color:var(--accent)}
+.mode-g{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0}
+.mc{padding:9px;border-radius:var(--radiusXs);background:var(--surface2);border:1px solid var(--cardBorder);text-align:center;font-size:11px;font-weight:500;color:var(--onSurfaceDim);cursor:pointer;transition:all .12s}
+.mc.on{background:var(--accentDim);border-color:var(--accent);color:var(--accent)}
+.mc:active{transform:scale(.96)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%)translateY(60px);background:rgba(30,30,30,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:10px 20px;border-radius:var(--radiusPill);font-size:13px;font-weight:500;color:var(--onSurface);opacity:0;transition:all .3s;pointer-events:none;z-index:300;box-shadow:0 8px 32px rgba(0,0,0,.6);white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%)translateY(0)}
+
+/* ── Extra Tools Panel ── */
+.panel-xtra{display:grid !important;grid-template-columns:1fr 1fr;gap:6px;padding-top:6px}
+.dg-reset{grid-column:1/-1;text-align:center;padding:8px;background:var(--card);border:1px solid var(--cardBorder);border-radius:var(--radiusXs);cursor:pointer;font-size:11px;color:var(--onSurfaceDim);font-family:inherit;transition:all .1s}
+.dg-reset:active{background:var(--surface2);transform:scale(.97)}
 </style>
 </head>
 <body>
 
 <div class="app" id="app">
-
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="tb-left" onclick="showVehiclePicker()">
-      <span class="tb-vehicle"><span id="vsName">Model S 85D</span><span class="arrow">▼</span></span>
-    </div>
-    <div class="tb-conn">
-      <span class="conn-dot offline" id="connDot"></span>
-      <span id="connLabel">未连接</span>
+  <!-- Status Bar -->
+  <div class="st-bar">
+    <span class="st-time" id="ckTime">--:--</span>
+    <div class="st-right">
+      <span class="st-conn"><span class="st-dot off" id="coDot"></span><span id="coLbl">未连接</span></span>
     </div>
   </div>
 
-  <!-- Controls Panel -->
-  <div class="panel active" id="panel-controls">
+  <!-- Vehicle Switcher -->
+  <div class="vs-bar">
+    <div class="vs-left" onclick="showVP()">
+      <span class="vs-car"><span id="vsI">🚗</span> <span id="vsN">Model S 85D</span><span class="vs-arrow">▼</span></span>
+    </div>
+    <div class="vs-add" onclick="showAV()">+</div>
+  </div>
 
-    <!-- Car Hero Area -->
-    <div class="car-hero" id="carStage">
-      <div class="glow" id="carGlow"></div>
-      <div class="car-svg-wrap" id="carWrap">
-        <svg viewBox="0 0 300 170" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Blueprint background -->
-          <rect x="0" y="0" width="300" height="170" fill="#0a1628"/>
+  <!-- ═══ CONTROLS PANEL ═══ -->
+  <div class="panel active" id="p-main">
 
-          <!-- Blueprint grid -->
-          <g stroke="rgba(79,195,247,.04)" stroke-width=".3">
-            <line x1="0" y1="0" x2="0" y2="170"/><line x1="15" y1="0" x2="15" y2="170"/>
-            <line x1="30" y1="0" x2="30" y2="170"/><line x1="45" y1="0" x2="45" y2="170"/>
-            <line x1="60" y1="0" x2="60" y2="170"/><line x1="75" y1="0" x2="75" y2="170"/>
-            <line x1="90" y1="0" x2="90" y2="170"/><line x1="105" y1="0" x2="105" y2="170"/>
-            <line x1="120" y1="0" x2="120" y2="170"/><line x1="135" y1="0" x2="135" y2="170"/>
-            <line x1="150" y1="0" x2="150" y2="170"/><line x1="165" y1="0" x2="165" y2="170"/>
-            <line x1="180" y1="0" x2="180" y2="170"/><line x1="195" y1="0" x2="195" y2="170"/>
-            <line x1="210" y1="0" x2="210" y2="170"/><line x1="225" y1="0" x2="225" y2="170"/>
-            <line x1="240" y1="0" x2="240" y2="170"/><line x1="255" y1="0" x2="255" y2="170"/>
-            <line x1="270" y1="0" x2="270" y2="170"/><line x1="285" y1="0" x2="285" y2="170"/>
-            <line x1="0" y1="0" x2="300" y2="0"/><line x1="0" y1="10" x2="300" y2="10"/>
-            <line x1="0" y1="20" x2="300" y2="20"/><line x1="0" y1="30" x2="300" y2="30"/>
-            <line x1="0" y1="40" x2="300" y2="40"/><line x1="0" y1="50" x2="300" y2="50"/>
-            <line x1="0" y1="60" x2="300" y2="60"/><line x1="0" y1="70" x2="300" y2="70"/>
-            <line x1="0" y1="80" x2="300" y2="80"/><line x1="0" y1="90" x2="300" y2="90"/>
-            <line x1="0" y1="100" x2="300" y2="100"/><line x1="0" y1="110" x2="300" y2="110"/>
-            <line x1="0" y1="120" x2="300" y2="120"/><line x1="0" y1="130" x2="300" y2="130"/>
-            <line x1="0" y1="140" x2="300" y2="140"/><line x1="0" y1="150" x2="300" y2="150"/>
-            <line x1="0" y1="160" x2="300" y2="160"/>
-          </g>
-
-          <!-- Ground line -->
-          <line x1="5" y1="148" x2="295" y2="148" stroke="rgba(79,195,247,.15)" stroke-width=".5" stroke-dasharray="3,3"/>
-
-          <!-- ══ BLUEPRINT TESLA MODEL S SIDE PROFILE ══ -->
-
-          <!-- Dimension lines (vertical) -->
-          <line x1="8" y1="30" x2="8" y2="148" stroke="rgba(79,195,247,.2)" stroke-width=".4"/>
-          <line x1="290" y1="30" x2="290" y2="148" stroke="rgba(79,195,247,.2)" stroke-width=".4"/>
-          <!-- Dimension arrows -->
-          <text x="144" y="165" text-anchor="middle" font-size="6" fill="rgba(79,195,247,.3)" font-family="monospace">4970 mm</text>
-          <text x="4" y="85" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.2)" font-family="monospace" transform="rotate(-90,4,85)">1440 mm</text>
-
-          <!-- Main body - blueprint outline style (stroke only, no fill) -->
-          <path d="M36 130 C14 128 8 112 8 96 C8 80 14 66 26 60 L32 56 C40 46 52 36 72 32 L100 28 L132 28 L162 32 C182 36 196 46 204 56 L210 60 C224 66 230 80 230 96 C230 112 224 128 202 130 L192 134 C184 140 172 144 152 145 L90 145 C70 144 58 140 50 134 L36 130Z"
-            stroke="#4fc3f7" stroke-width="1.2" fill="none" class="car-part"/>
-
-          <!-- Inner construction lines -->
-          <path d="M36 130 C14 128 8 112 8 96 C8 80 14 66 26 60 L32 56 C40 46 52 36 72 32 L100 28 L132 28 L162 32 C182 36 196 46 204 56 L210 60 C224 66 230 80 230 96 C230 112 224 128 202 130 L192 134 C184 140 172 144 152 145 L90 145 C70 144 58 140 50 134 L36 130Z"
-            stroke="rgba(79,195,247,.08)" stroke-width=".3" fill="none" transform="scale(.98) translate(3,1.5)"/>
-
-          <!-- Roof / greenhouse -->
-          <path d="M56 56 C62 42 76 32 96 28 L116 27 C140 28 156 34 166 46"
-            stroke="#4fc3f7" stroke-width=".8" fill="none" class="car-part"/>
-
-          <!-- Windshield -->
-          <path d="M56 56 C62 42 76 32 96 28 L108 28 L108 48 C88 50 72 56 60 66 L56 56Z"
-            stroke="#4fc3f7" stroke-width=".6" fill="none" opacity=".6"/>
-
-          <!-- Rear window -->
-          <path d="M178 46 C168 36 154 30 138 28 L138 48 C152 48 166 54 176 62 L178 46Z"
-            stroke="#4fc3f7" stroke-width=".6" fill="none" opacity=".6"/>
-
-          <!-- Door seams (blueprint dashed) -->
-          <line x1="108" y1="32" x2="108" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
-          <line x1="144" y1="32" x2="144" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
-          <line x1="180" y1="32" x2="180" y2="104" stroke="rgba(79,195,247,.25)" stroke-width=".4" stroke-dasharray="2,2"/>
-
-          <!-- Door handles -->
-          <rect x="112" y="64" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-          <rect x="158" y="64" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-          <rect x="74" y="66" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-          <rect x="198" y="66" width="6" height="1.5" rx=".5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-
-          <!-- Frunk line -->
-          <path d="M8 94 C8 78 18 64 32 58 L42 54 L42 88 C28 90 18 98 12 108 L8 94Z"
-            stroke="#4fc3f7" stroke-width=".5" fill="none" opacity=".5"/>
-
-          <!-- Trunk line -->
-          <path d="M228 94 C232 78 225 64 212 58 L205 54 L202 88 C216 90 224 98 230 108 L228 94Z"
-            stroke="#4fc3f7" stroke-width=".5" fill="none" opacity=".5"/>
-
-          <!-- Headlight -->
-          <ellipse cx="14" cy="94" rx="5" ry="2.5" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-          <!-- Taillight -->
-          <ellipse cx="232" cy="96" rx="3" ry="2" stroke="#4fc3f7" stroke-width=".5" fill="none"/>
-
-          <!-- Wheels (blueprint style) -->
-          <g stroke="#4fc3f7" stroke-width=".6" fill="none">
-            <!-- Front wheel -->
-            <circle cx="78" cy="140" r="16"/>
-            <circle cx="78" cy="140" r="10" opacity=".5"/>
-            <circle cx="78" cy="140" r="4" opacity=".3"/>
-            <line x1="78" y1="124" x2="78" y2="156" stroke-width=".3" opacity=".3"/>
-            <line x1="62" y1="140" x2="94" y2="140" stroke-width=".3" opacity=".3"/>
-            <!-- Rear wheel -->
-            <circle cx="190" cy="140" r="16"/>
-            <circle cx="190" cy="140" r="10" opacity=".5"/>
-            <circle cx="190" cy="140" r="4" opacity=".3"/>
-            <line x1="190" y1="124" x2="190" y2="156" stroke-width=".3" opacity=".3"/>
-            <line x1="174" y1="140" x2="206" y2="140" stroke-width=".3" opacity=".3"/>
-          </g>
-
-          <!-- Wheelbase measurement -->
-          <line x1="78" y1="158" x2="78" y2="162" stroke="rgba(79,195,247,.2)" stroke-width=".3"/>
-          <line x1="190" y1="158" x2="190" y2="162" stroke="rgba(79,195,247,.2)" stroke-width=".3"/>
-          <line x1="78" y1="160" x2="190" y2="160" stroke="rgba(79,195,247,.15)" stroke-width=".3"/>
-          <text x="134" y="159" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.3)" font-family="monospace">2960 mm</text>
-
-          <!-- Model badge -->
-          <text x="150" y="16" text-anchor="middle" font-size="8" fill="#4fc3f7" font-family="monospace" letter-spacing="3" opacity=".6">MODEL S 85D</text>
-          <text x="150" y="24" text-anchor="middle" font-size="5" fill="rgba(79,195,247,.3)" font-family="monospace" letter-spacing="2">2015 · 85 kWh · DUAL MOTOR</text>
-
-          <!-- Blueprint stamp / border -->
-          <rect x="2" y="2" width="296" height="166" stroke="rgba(79,195,247,.1)" stroke-width=".3" fill="none"/>
-          <rect x="4" y="4" width="292" height="162" stroke="rgba(79,195,247,.06)" stroke-width=".2" fill="none"/>
-        </svg>
-      </div><!-- /car-svg-wrap -->
-      <div class="car-badge"><span class="bd-dot" id="stateDot" style="background:var(--onSurfaceMuted)"></span><span id="stateLabel">就绪</span></div>
-    </div><!-- /car-hero -->
-
-    <!-- Battery Bar -->
-    <div class="batt-bar">
-      <div class="bb-left">
-        <div class="batt-ring">
-          <svg width="44" height="44" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="3"/>
-            <circle cx="22" cy="22" r="18" fill="none" stroke="var(--green)" stroke-width="3" stroke-dasharray="113.1" stroke-dashoffset="28.3" id="battArc" stroke-linecap="round"/>
-          </svg>
-          <span class="pct" id="battPct">--</span>
-        </div>
-        <div class="range-wrap">
-          <div><span class="range" id="rangeKm">--</span><span class="range-unit">km</span></div>
-          <span class="sub" id="battSub">续航里程</span>
-        </div>
+    <!-- Car Hero -->
+    <div class="car-hero">
+      <div class="glow" id="cGlow"></div>
+      <div class="car-wrap" id="cWrap">
+        <!-- SVG car from backend -->
       </div>
-      <div class="bb-right">
-        <div class="bb-stat"><div class="val" id="ambientTemp">--</div><div class="lbl">°C</div></div>
-        <div class="bb-stat"><div class="val" id="gearDisplay">P</div><div class="lbl">挡位</div></div>
+      <div class="car-model" id="cMod">2015 Model S 85D · 午夜银</div>
+    </div>
+
+    <!-- Battery Card -->
+    <div class="c-batt">
+      <span class="cb-icon">🔋</span>
+      <div class="cb-main">
+        <div class="cb-num g" id="bpct">--<span style="font-size:14px;font-weight:500;letter-spacing:0">%</span></div>
+        <div class="cb-bar"><div class="cb-fill g" id="bpf" style="width:50%"></div></div>
+        <div class="cb-sub"><span id="brng">-- km</span><span id="bvin">5YJ…</span></div>
+      </div>
+      <div class="cb-stat">
+        <div class="sv" id="byr">2015</div>
+        <div class="sl">车龄</div>
       </div>
     </div>
 
-    <div class="lock-section">
-      <div id="lockBtn" class="lock-btn locked" onclick="toggleLock(event)"><span class="icon">🔒</span><span id="lockLabel">锁门</span></div>
+    <!-- Lock Button -->
+    <div class="lock-area">
+      <div class="lock-btn l" id="lkBtn" onclick="togLock(event)"><span class="lk-icon">🔒</span><span id="lkLbl">锁门</span></div>
     </div>
 
-    <div class="section-label">快捷控制</div>
-    <div class="quick-grid">
-      <div class="qc" onclick="sendCmd('lock')"><span class="icon">🔒</span><span class="label">锁门</span></div>
-      <div class="qc" onclick="sendCmd('unlock')"><span class="icon">🔓</span><span class="label">开门</span></div>
-      <div class="qc" onclick="sendCmd('frunk')"><span class="icon">🟢</span><span class="label">前备箱</span></div>
-      <div class="qc" onclick="sendCmd('trunk')"><span class="icon">🟤</span><span class="label">后备箱</span></div>
+    <!-- Quick Controls -->
+    <div class="sec-t">快捷控制</div>
+    <div class="q-grid">
+      <div class="qc" onclick="sCmd('lock')"><span class="qi">🔒</span><span class="ql">锁门</span></div>
+      <div class="qc" onclick="sCmd('unlock')"><span class="qi">🔓</span><span class="ql">开门</span></div>
+      <div class="qc" onclick="sCmd('frunk')"><span class="qi">🟢</span><span class="ql">前备箱</span></div>
+      <div class="qc" onclick="sCmd('trunk')"><span class="qi">🟤</span><span class="ql">后备箱</span></div>
+      <div class="qc" onclick="sCmd('flash_lights')"><span class="qi">💡</span><span class="ql">闪灯</span></div>
+      <div class="qc" onclick="sCmd('honk')"><span class="qi">📯</span><span class="ql">鸣笛</span></div>
+      <div class="qc" onclick="sCmd('windows_vent')"><span class="qi">🪟</span><span class="ql">通风</span></div>
+      <div class="qc" onclick="sCmd('windows_close')"><span class="qi">🔒🪟</span><span class="ql">关窗</span></div>
+      <div class="qc" onclick="sCmd('charge_port')"><span class="qi">🔌</span><span class="ql">充电口</span></div>
+      <div class="qc" onclick="sCmd('charge_stop')"><span class="qi">⚡</span><span class="ql">停止充电</span></div>
     </div>
-    <div class="quick-grid" style="margin-top:8px">
-      <div class="qc" onclick="sendCmd('flash_lights')"><span class="icon">💡</span><span class="label">闪灯</span></div>
-      <div class="qc" onclick="sendCmd('honk')"><span class="icon">📯</span><span class="label">鸣笛</span></div>
-      <div class="qc" onclick="sendCmd('windows_vent')"><span class="icon">🪟</span><span class="label">通风</span></div>
-      <div class="qc" onclick="sendCmd('windows_close')"><span class="icon">🔒🪟</span><span class="label">关窗</span></div>
+
+    <!-- Climate Card -->
+    <div class="c-clim">
+      <div class="cc-head">
+        <span class="cch-l">🌡️ 空调</span>
+        <span class="cch-r">❄️ 开启</span>
+      </div>
+      <div class="cc-mid">
+        <span class="cc-temp">22<sup>°</sup></span>
+        <div class="cc-ctrl">
+          <button onclick="adjTemp(-1)">−</button>
+          <button onclick="adjTemp(1)">+</button>
+        </div>
+      </div>
+      <div class="cc-row">
+        <div class="cc-chip">自动</div>
+        <div class="cc-chip">制冷</div>
+        <div class="cc-chip">制热</div>
+        <div class="cc-chip">除雾</div>
+      </div>
+    </div>
+
+    <!-- Status Row -->
+    <div class="stat-row">
+      <div class="sr"><div class="sv" id="sBatt">⏳</div><div class="sl">电池</div></div>
+      <div class="sr"><div class="sv" id="sCAN">⏳</div><div class="sl">CAN</div></div>
+      <div class="sr"><div class="sv" id="sNet">⏳</div><div class="sl">4G</div></div>
+      <div class="sr"><div class="sv" id="sBT">⏳</div><div class="sl">蓝牙</div></div>
     </div>
   </div>
 
-  <!-- Settings Panel -->
-  <div class="panel" id="panel-settings">
-    <div class="section-label" style="padding-top:8px">⚙️ 设置</div>
-    <div class="section-label" style="font-size:11px;padding:8px 4px 4px;color:var(--onSurfaceMuted)">连接方式</div>
-    <div class="mode-selector" id="modeSelector">
-      <div class="mode-chip active" data-mode="tailscale">🔗 Tailscale</div>
-      <div class="mode-chip" data-mode="ddns">🌍 DDNS</div>
-      <div class="mode-chip" data-mode="wifi">🏠 WiFi</div>
-      <div class="mode-chip" data-mode="ble">📶 蓝牙</div>
+  <!-- ═══ DIAGNOSTICS PANEL ═══ -->
+  <div class="panel" id="p-diag">
+    <div class="sec-t" style="padding-top:8px">📊 系统状态</div>
+    <div class="dg-s" id="dgS"></div>
+    <div class="dg-grid" id="dgG">
+      <div class="dg-card"><div class="dgr"><span class="dgi">🔌</span><span class="dgn">CAN</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
+      <div class="dg-card"><div class="dgr"><span class="dgi">📡</span><span class="dgn">4G/5G</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
+      <div class="dg-card"><div class="dgr"><span class="dgi">📶</span><span class="dgn">蓝牙</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
+      <div class="dg-card"><div class="dgr"><span class="dgi">🌐</span><span class="dgn">互联网</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
+      <div class="dg-card"><div class="dgr"><span class="dgi">🔗</span><span class="dgn">Tailscale</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
+      <div class="dg-card"><div class="dgr"><span class="dgi">🖥️</span><span class="dgn">系统</span><span class="dgd off"></span></div><div class="dgt">检测中...</div></div>
     </div>
-    <div class="settings-group">
-      <label>连接地址</label><input type="url" id="serverUrl" placeholder="http://100.x.x.x:5000">
-      <label>API Token</label><input type="password" id="apiToken" placeholder="安全令牌（可选）">
-      <label>Tailscale IP</label><input type="text" id="tsIp" placeholder="100.x.x.x">
-      <label>DDNS 域名</label><input type="text" id="ddnsDomain" placeholder="mytesla.duckdns.org">
+    <div class="dg-reset" onclick="runDiag()">🔄 重新检测</div>
+  </div>
+
+  <!-- ═══ SETTINGS PANEL ═══ -->
+  <div class="panel" id="p-set">
+    <div class="sec-t" style="padding-top:8px">⚙️ 设置</div>
+    <div class="sec-t" style="font-size:10px;font-weight:500;padding:4px 2px">连接方式</div>
+    <div class="mode-g" id="mdG">
+      <div class="mc on" data-m="tailscale">🔗 Tailscale</div>
+      <div class="mc" data-m="ddns">🌍 DDNS</div>
+      <div class="mc" data-m="wifi">🏠 WiFi</div>
+      <div class="mc" data-m="ble">📶 蓝牙</div>
+    </div>
+    <div class="sg">
+      <label>连接地址</label><input type="url" id="sUrl" placeholder="http://100.x.x.x:5000">
+      <label>API Token</label><input type="password" id="sTok" placeholder="安全令牌（可选）">
+      <label>Tailscale IP</label><input type="text" id="sTS" placeholder="100.x.x.x">
+      <label>DDNS 域名</label><input type="text" id="sDDNS" placeholder="remote.openfrunk.com">
     </div>
   </div>
 
-  <!-- Diagnostics Panel -->
-  <div class="panel" id="panel-diagnostics">
-    <div class="section-label" style="padding-top:8px">📊 系统状态</div>
-    <div class="diag-summary" id="diagSummary"></div>
-    <div class="diag-grid" id="diagGrid">
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🔌</span><span class="dc-name">CAN 总线</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">📡</span><span class="dc-name">4G/5G 网络</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">📶</span><span class="dc-name">手机蓝牙</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🌐</span><span class="dc-name">互联网</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🔗</span><span class="dc-name">Tailscale</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-      <div class="diag-card"><div class="dc-row"><span class="dc-icon">🖥️</span><span class="dc-name">Orange Pi</span><span class="dc-indicator offline"></span></div><div class="dc-status">检测中...</div></div>
-    </div>
-    <div style="text-align:center;margin-top:8px">
-      <button onclick="runDiagnostics()" style="background:var(--surface2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:8px 20px;color:var(--onSurfaceDim);font-size:11px;cursor:pointer;font-family:inherit">🔄 重新检测</button>
-    </div>
+</div>
+
+<!-- ═══ OVERLAYS ═══ -->
+<div class="overlay" id="oVP" onclick="hideVP()"></div>
+<div class="sheet" id="sVP">
+  <div class="sh-h"></div>
+  <div class="sh-t">选择车辆</div>
+  <div id="vpList"></div>
+  <div class="v-item" style="margin-top:8px;border:1px dashed var(--cardBorder);justify-content:center;gap:6px;color:var(--onSurfaceDim)" onclick="hideVP();showAV()">
+    <span style="font-size:18px">+</span><span style="font-size:13px;font-weight:500">添加新车辆</span>
   </div>
 </div>
 
-<!-- ═══ OVERLAY: Vehicle Picker ═══ -->
-<div class="dropdown-overlay" id="pickerOverlay" onclick="hideVehiclePicker()"></div>
-<div class="dropdown-sheet" id="pickerSheet">
-  <div class="handle"></div>
-  <div class="title">选择车辆</div>
-  <div id="vehicleList"></div>
-  <div style="margin-top:16px;text-align:center">
-    <button onclick="hideVehiclePicker();showAddVehicle()" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">+ 添加新车辆</button>
-  </div>
-</div>
-
-<!-- ═══ OVERLAY: Add Vehicle ═══ -->
-<div class="dropdown-overlay" id="addOverlay" onclick="hideAddVehicle()"></div>
-<div class="dropdown-sheet" id="addSheet" style="max-height:85vh;overflow-y:auto">
-  <div class="handle"></div>
-  <div class="add-form">
-    <div class="af-title">➕ 添加车辆</div>
-
-    <!-- Connection Type -->
-    <label>连接方式</label>
-    <div class="mode-selector" id="connTypeSelector" style="grid-template-columns:1fr 1fr 1fr">
-      <div class="mode-chip active" data-mode="can" onclick="selectConnType('can')">🔌 CAN</div>
-      <div class="mode-chip" data-mode="sandbox" onclick="selectConnType('sandbox')">🧪 模拟</div>
-    </div>
-
-    <!-- Sandbox note -->
-    <div id="sandboxNote" style="display:none;background:var(--amber);color:#000;border-radius:var(--radiusXs);padding:10px;font-size:11px;margin-bottom:10px;line-height:1.5;font-weight:500">
-      🧪 模拟模式 — 显示虚拟数据，用于测试 UI/UX。所有命令返回模拟成功。
-    </div>
-
-    <!-- Tab: VIN or Model -->
-    <div class="add-tabs">
-      <button class="add-tab active" id="tabVin" onclick="switchAddMode('vin')">🔍 扫VIN (可选)</button>
-      <button class="add-tab" id="tabModel" onclick="switchAddMode('model')">📋 手动选配</button>
-    </div>
-
-    <!-- Mode: VIN -->
-    <div id="addModeVin">
-      <label>车架号 VIN <span style="color:var(--onSurfaceMuted);font-weight:400;text-transform:none">(可选)</span></label>
-      <div class="vin-row">
-        <input type="text" id="newVin" placeholder="5YJ..." maxlength="17" oninput="onVinInput()">
-        <button onclick="decodeNewVin()" id="decodeBtn">识别</button>
-      </div>
-      <div class="vin-result" id="newVinResult"></div>
-    </div>
-
-    <!-- Mode: Model Picker -->
-    <div id="addModeModel" style="display:none">
-      <label>车型 *</label>
-      <select id="newModelSelect" onchange="onModelSelected()">
-        <option value="">— 选择车型 —</option>
-      </select>
-      <div id="newModelInfo" style="margin-top:8px;background:var(--surface3);border-radius:var(--radiusXs);padding:12px;font-size:12px;color:var(--onSurfaceDim);display:none"></div>
-    </div>
-
-    <label>车辆昵称 <span style="color:var(--onSurfaceMuted);font-weight:400;text-transform:none">(可选）</span></label>
-    <input type="text" id="newNick" placeholder="我的 85D">
-
-    <div class="add-row">
-      <div class="add-col">
-        <label>子型号 / 版本</label>
-        <select id="newSubModel">
-          <option value="standard">Standard</option>
-          <option value="long_range" selected>Long Range</option>
-          <option value="performance">Performance</option>
-          <option value="plaid">Plaid</option>
-          <option value="base">Base</option>
-        </select>
-      </div>
-      <div class="add-col">
-        <label>出厂年份</label>
-        <select id="newYear"></select>
-      </div>
-    </div>
-
-    <div class="add-row">
-      <div class="add-col">
-        <label>颜色</label>
-        <div class="color-picker" id="newColorPicker"></div>
-        <input type="text" id="newCustomHex" placeholder="#XXXXXX 自定义车衣" style="width:100%;background:var(--surface3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:8px 12px;color:var(--onSurface);font-size:12px;outline:none;font-family:monospace;margin-top:4px">
-      </div>
-      <div class="add-col">
-        <label>内饰</label>
-        <div class="color-picker" id="newInteriorPicker"></div>
-        <input type="text" id="newCustomInteriorHex" placeholder="#XXXXXX 自定义" style="width:100%;background:var(--surface3);border:1px solid rgba(255,255,255,.06);border-radius:var(--radiusXs);padding:8px 12px;color:var(--onSurface);font-size:12px;outline:none;font-family:monospace;margin-top:4px">
-      </div>
-    </div>
-
-    <div class="add-row">
-      <div class="add-col">
-        <label>轮毂</label>
-        <select id="newWheelSize">
-          <option value="stock_19">19寸 标准</option><option value="turbine_21">21寸 Turbine</option>
-          <option value="slipstream_19">19寸 Slipstream</option><option value="aract_20">20寸 Aract</option>
-        </select>
-      </div>
-      <div class="add-col">
-        <label>MCU / 电脑</label>
-        <select id="newMcu">
-          <option value="mcu1">MCU 1 (Tegra)</option><option value="mcu2">MCU 2 (Intel Atom)</option>
-          <option value="fsd3">FSD 3 (HW3)</option><option value="hw4">FSD 4 (HW4)</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="add-row">
-      <div class="add-col">
-        <label>车身外观</label>
-        <select id="newBodyStyle">
-          <option value="stock_og">原厂老款 (2012-2016)</option>
-          <option value="stock_facelift">原厂改款 (2016-2021)</option>
-          <option value="stock_palladium">原厂 Palladium (2021+)</option>
-        </select>
-      </div>
-      <div class="add-col">
-        <label>地区 / 规格</label>
-        <select id="newRegion">
-          <option value="us_eu">🇺🇸 北美 / 欧洲 (左舵)</option>
-          <option value="china">🇨🇳 中国 (左舵)</option>
-          <option value="hong_kong" selected>🇭🇰 香港 / UK (右舵)</option>
-          <option value="japan">🇯🇵 日本 (右舵)</option>
-          <option value="other">🌍 其他</option>
-        </select>
-      </div>
-    </div>
-
-    <label>备注 <span style="color:var(--onSurfaceMuted);font-weight:400;text-transform:none">(可选）</span></label>
-    <input type="text" id="newNote" placeholder="香港车 / 改色灰色">
-
-    <button class="btn-save" onclick="saveNewVehicle()">✅ 确认绑定</button>
-    <button class="btn-cancel" onclick="hideAddVehicle()">取消</button>
+<div class="overlay" id="oAV" onclick="hideAV()"></div>
+<div class="sheet" id="sAV">
+  <div class="sh-h"></div>
+  <div class="sh-t">➕ 添加车辆</div>
+  <div class="add-f">
+    <label>车架号 (VIN) *</label>
+    <div class="vin-r"><input type="text" id="nVIN" placeholder="5YJSB7H29FF099591" maxlength="17" style="text-transform:uppercase"><button onclick="decVIN()">识别</button></div>
+    <div class="vin-res" id="nVR"></div>
+    <label>昵称</label><input type="text" id="nNick" placeholder="我的 85D">
+    <label>颜色</label><div class="cp" id="nCP"></div>
+    <label>备注</label><input type="text" id="nNote" placeholder="香港车 · 原白改灰">
+    <button class="btn-s" onclick="saveV()">✅ 确认绑定</button>
+    <button class="btn-c" onclick="hideAV()">取消</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Bottom Dock -->
-<div class="bottom-dock">
-  <div class="dock-grid">
-    <button class="dock-item active" onclick="navigateTo('controls')"><span class="icon">⚡</span>控制</button>
-    <button class="dock-item" onclick="navigateTo('diagnostics')"><span class="icon">📊</span>状态</button>
-    <button class="dock-item" onclick="navigateTo('settings')"><span class="icon">⚙️</span>设置</button>
-  </div>
+<!-- ═══ BOTTOM DOCK ═══ -->
+<div class="b-dock">
+  <button class="dk-item active" onclick="navTo('main')"><span class="dki">⚡</span><span class="dkl">控制</span></button>
+  <button class="dk-item" onclick="navTo('diag')"><span class="dki">📊</span><span class="dkl">状态</span></button>
+  <button class="dk-item" onclick="navTo('set')"><span class="dki">⚙️</span><span class="dkl">设置</span></button>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════════════════════
-//  VEHICLE DATABASE
+// VEHICLE DATA
 // ══════════════════════════════════════════════════════════════════
-
-const COLORS = [
+const COLORS=[
   {id:'pearl_white',cn:'珍珠白',hex:'#f5f5f0'},{id:'solid_black',cn:'纯黑',hex:'#1a1a1a'},
   {id:'obsidian_black',cn:'曜石黑',hex:'#282828'},{id:'midnight_silver',cn:'午夜银',hex:'#6b6b6b'},
   {id:'deep_blue',cn:'深海蓝',hex:'#1a2b5c'},{id:'red_multicoat',cn:'中国红',hex:'#c41e2a'},
   {id:'signature_red',cn:'签名红',hex:'#b81a24'},{id:'silver',cn:'银色',hex:'#c0c0c0'},
-  {id:'stealth_grey',cn:'隐形灰',hex:'#4a4a52'},{id:'ultra_red',cn:'超红',hex:'#d42e3a'},
   {id:'cream',cn:'奶油白',hex:'#f5e6d3'},{id:'matte_black',cn:'哑光黑',hex:'#1c1c1c'},
-  {id:'matte_grey',cn:'哑光灰',hex:'#5c5c5c'},{id:'satin_darkgrey',cn:'锻面深灰',hex:'#3d3d3d'},
   {id:'custom',cn:'自定义',hex:null},
 ];
+const MODEL_ICONS={'S':'🚗','X':'🚙','3':'🚘','Y':'🚙','C':'🛻','R':'🏎️'};
+let vehicles=[];
+let actV=null;
+let _selC='midnight_silver';
 
-const INTERIOR_COLORS_DATA = [
-  {id:'black',cn:'黑色',hex:'#1a1a1a'},{id:'white',cn:'白色',hex:'#f0ede6'},
-  {id:'cream',cn:'奶油色',hex:'#f5e6d3'},{id:'tan',cn:'棕褐色',hex:'#c4a882'},
-  {id:'grey',cn:'灰色',hex:'#8a8a8a'},{id:'oak',cn:'橡木色',hex:'#c19a6b'},
-  {id:'red_plaid',cn:'红色 Plaid',hex:'#c41e2a'},{id:'custom_leather',cn:'自定义',hex:null},
-];
-
-const MODEL_ICONS = {'S':'🚗','X':'🚙','3':'🚘','Y':'🚙','C':'🛻','R':'🏎️'};
-
-let vehicles = [];
-let activeVehicleId = null;
-
-/* ── Load from localStorage ── */
-function loadVehicles() {
-  try {
-    const data = localStorage.getItem('tsl_vehicles_v2');
-    vehicles = data ? JSON.parse(data) : [];
-  } catch(e) { vehicles = []; }
-
-  // Default vehicle if none saved
-  if (vehicles.length === 0) {
-    vehicles.push({
-      id: 'v_default',
-      nick: 'Model S 85D',
-      vin: '',
-      modelName: 'Model S 85D',
-      year: 2015,
-      battery: '85kWh',
-      range: 443,
-      color: 'midnight_silver',
-      customHex: '',
-      wheelSize: 'stock_19',
-      mcu: 'mcu1',
-      bodyStyle: 'stock_og',
-      interiorColor: 'black',
-      interiorCustomHex: '',
-      note: '香港 · 原白改灰',
-      icon: '🚗',
-      createdAt: Date.now(),
-    });
-    saveVehicles();
+function loadV(){
+  try{const d=localStorage.getItem('tsl_v3');vehicles=d?JSON.parse(d):[]}catch(e){vehicles=[]}
+  if(!vehicles.length){
+    vehicles.push({id:'v_def',nick:'Model S 85D',vin:'',modelName:'Model S 85D',year:2015,battery:'85kWh',range:443,color:'midnight_silver',icon:'🚗',createdAt:Date.now()});
+    sv();
   }
+  actV=localStorage.getItem('tsl_act')||vehicles[0].id;
+  if(!vehicles.find(v=>v.id===actV)) actV=vehicles[0].id;
+}
+function sv(){localStorage.setItem('tsl_v3',JSON.stringify(vehicles))}
+function gV(){return vehicles.find(v=>v.id===actV)||vehicles[0]}
 
-  // Set active
-  activeVehicleId = localStorage.getItem('tsl_active_vehicle') || vehicles[0].id;
-  if (!vehicles.find(v => v.id === activeVehicleId)) {
-    activeVehicleId = vehicles[0].id;
-  }
+function updUI(){
+  const v=gV();if(!v)return;
+  document.getElementById('vsI').textContent=v.icon||'🚗';
+  document.getElementById('vsN').textContent=v.nick;
+  document.getElementById('bvin').textContent=v.vin?v.vin.slice(0,5)+'…':'—';
+  document.getElementById('byr').textContent=v.year||'—';
+  document.getElementById('cMod').textContent=v.modelName+' · '+(COLORS.find(c=>c.id===v.color)?.cn||'');
 }
 
-function saveVehicles() {
-  localStorage.setItem('tsl_vehicles_v2', JSON.stringify(vehicles));
-  localStorage.setItem('tsl_active_vehicle', activeVehicleId);
+function updCar(){/* stub */}
+
+// ═══ ADD VEHICLE ═══
+function showAV(){
+  document.getElementById('oAV').classList.add('show');
+  document.getElementById('sAV').classList.add('show');
+  ['nVIN','nNick','nNote'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('nVR').className='vin-res';
+  document.getElementById('nVR').style.display='none';
+  _selC='midnight_silver';
+  renderCP();
 }
-
-/* ── Get active vehicle ── */
-function activeVehicle() {
-  return vehicles.find(v => v.id === activeVehicleId) || vehicles[0];
+function hideAV(){
+  document.getElementById('oAV').classList.remove('show');
+  document.getElementById('sAV').classList.remove('show');
 }
-
-/* ── Render vehicle picker list ── */
-function renderVehiclePicker() {
-  const list = document.getElementById('vehicleList');
-  if (vehicles.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--onSurfaceMuted);font-size:13px">暂无车辆</div>';
-    return;
-  }
-  list.innerHTML = vehicles.map(v => {
-    const isActive = v.id === activeVehicleId;
-    return `<div class="v-item">
-      <div class="v-info" onclick="selectVehicle('${v.id}')" style="${isActive ? 'background:var(--accentDim);border-radius:var(--radiusSm)' : ''}">
-        <span class="v-icon">${v.icon || '🚗'}</span>
-        <div style="flex:1">
-          <div class="v-name">${v.nick}</div>
-          <div class="v-sub">${v.modelName || 'Tesla'} · ${v.vin ? v.vin.slice(0,8)+'…' : '无 VIN'}</div>
-        </div>
-        ${isActive ? '<span class="v-badge">当前</span>' : ''}
-        <span class="v-del ${isActive?'show':''}" onclick="event.stopPropagation();deleteVehicle('${v.id}')">✕</span>
-      </div>
-    </div>`;
-  }).join('');
+function renderCP(){
+  const p=document.getElementById('nCP');
+  p.innerHTML=COLORS.map(c=>'<div class="cc'+(c.id==='midninght_silver'?' on':'')+'" style="background:'+(c.hex||'#333')+'" onclick="selC(\\''+c.id+'\\')" title="'+c.cn+'"></div>').join('');
 }
+function selC(id){_selC=id;document.querySelectorAll('#nCP .cc').forEach(c=>c.classList.remove('on'));document.querySelector('#nCP .cc[style*="'+id+'"]')?.classList.add('on')}
 
-/* ── Select vehicle ── */
-function selectVehicle(id) {
-  activeVehicleId = id;
-  saveVehicles();
-  hideVehiclePicker();
-  updateVehicleUI();
-  updateCarVisual();
-  pollStatus();
-}
-
-/* ── Delete vehicle ── */
-function deleteVehicle(id) {
-  if (vehicles.length <= 1) {
-    toast('至少保留一辆车', 'error');
-    return;
-  }
-  vehicles = vehicles.filter(v => v.id !== id);
-  if (activeVehicleId === id) {
-    activeVehicleId = vehicles[0].id;
-  }
-  saveVehicles();
-  renderVehiclePicker();
-  updateVehicleUI();
-  updateCarVisual();
-  toast('🗑️ 已删除');
-}
-
-/* ── Update main UI for active vehicle ── */
-function updateVehicleUI() {
-  const v = activeVehicle();
-  if (!v) return;
-
-  document.getElementById('vsName').textContent = v.nick;
-  document.getElementById('carModelDisplay')?.remove();
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   ADD VEHICLE
-function showAddVehicle() {
-  document.getElementById('addOverlay').classList.add('show');
-  document.getElementById('addSheet').classList.add('show');
-  document.getElementById('newVin').value = '';
-  document.getElementById('newNick').value = '';
-  document.getElementById('newNote').value = '';
-  document.getElementById('newCustomHex').value = '';
-  document.getElementById('newCustomInteriorHex').value = '';
-  document.getElementById('newWheelSize').value = 'stock_19';
-  document.getElementById('newMcu').value = 'mcu1';
-  document.getElementById('newBodyStyle').value = 'stock_og';
-  document.getElementById('newVinResult').className = 'vin-result';
-  document.getElementById('newVinResult').style.display = 'none';
-  document.getElementById('newModelInfo').style.display = 'none';
-  document.getElementById('newModelSelect').value = '';
-  _selectedNewColor = 'midnight_silver';
-  _selectedInteriorColor = 'black';
-  _selectedModelData = null;
-  renderNewColorPicker();
-  renderNewInteriorPicker();
-  switchAddMode('vin');
-  loadModelList();
-  // Populate year dropdown
-  const yrSel=document.getElementById('newYear');
-  if(!yrSel.options.length){
-    const now=new Date().getFullYear();
-    for(let y=now;y>=2012;y--){
-      const o=document.createElement('option');
-      o.value=y;o.textContent=y;
-      if(y===2015)o.selected=true;
-      yrSel.appendChild(o);
-    }
-  }
-}
-
-/* ── Tab switch ── */
-function switchAddMode(mode) {
-  document.getElementById('tabVin').className = mode==='vin' ? 'add-tab active' : 'add-tab';
-  document.getElementById('tabModel').className = mode==='model' ? 'add-tab active' : 'add-tab';
-  document.getElementById('addModeVin').style.display = mode==='vin' ? 'block' : 'none';
-  document.getElementById('addModeModel').style.display = mode==='model' ? 'block' : 'none';
-}
-
-/* ── Connection type switch ── */
-let _connType = 'can';
-function selectConnType(type) {
-  _connType = type;
-  document.querySelectorAll('#connTypeSelector .mode-chip').forEach(c => c.classList.toggle('active', c.dataset.mode === type));
-  document.getElementById('sandboxNote').style.display = type === 'sandbox' ? 'block' : 'none';
-}
-
-/* ── VIN input auto-trim ── */
-function onVinInput() {
-  const v = document.getElementById('newVin');
-  v.value = v.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,17);
-}
-
-/* ── Load model list from server ── */
-let _allModels = [];
-let _selectedModelData = null;
-
-async function loadModelList() {
-  const sel = document.getElementById('newModelSelect');
-  if (_allModels.length) return; // already loaded
-  sel.innerHTML = '<option value="">— 加载中... —</option>';
-  const data = await api('GET', 'models');
-  if (data && data.models && data.models.length) {
-    _allModels = data.models;
-    sel.innerHTML = '<option value="">— 选择车型 —</option>';
-    data.models.forEach(function(m) {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.year_range + '  ' + m.name_cn + ' (' + m.name + ') · ' + m.battery_kwh + 'kWh · ' + m.range_km + 'km';
-      sel.appendChild(opt);
-    });
-  } else {
-    // Fallback: common models for 2015 Model S
-    _allModels = [
-      {id:'ms_85d',name:'Model S 85D',name_cn:'Model S 85D',year_range:'2014-2015',battery_kwh:85,range_km:443},
-      {id:'ms_p85d',name:'Model S P85D',name_cn:'Model S P85D',year_range:'2014-2015',battery_kwh:85,range_km:428},
-      {id:'ms_60',name:'Model S 60',name_cn:'Model S 60',year_range:'2013-2016',battery_kwh:60,range_km:335},
-      {id:'ms_85',name:'Model S 85',name_cn:'Model S 85',year_range:'2013-2015',battery_kwh:85,range_km:426},
-      {id:'ms_90d',name:'Model S 90D',name_cn:'Model S 90D',year_range:'2015-2017',battery_kwh:90,range_km:473},
-      {id:'ms_p100d',name:'Model S P100D',name_cn:'Model S P100D',year_range:'2016-2020',battery_kwh:100,range_km:507},
-      {id:'mx_90d',name:'Model X 90D',name_cn:'Model X 90D',year_range:'2015-2017',battery_kwh:90,range_km:414},
-      {id:'m3_lr',name:'Model 3 Long Range',name_cn:'Model 3 长续航',year_range:'2017-2023',battery_kwh:75,range_km:560},
-    ];
-    sel.innerHTML = '<option value="">— 选择车型 —</option>';
-    _allModels.forEach(function(m) {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.name_cn + ' (' + m.name + ') · ' + m.battery_kwh + 'kWh';
-      sel.appendChild(opt);
-    });
-  }
-}
-
-/* ── Model selected ── */
-function onModelSelected() {
-  const sel = document.getElementById('newModelSelect');
-  const info = document.getElementById('newModelInfo');
-  const id = sel.value;
-  const m = _allModels.find(function(x) { return x.id === id; });
-  if (m) {
-    _selectedModelData = m;
-    info.style.display = 'block';
-    info.innerHTML = '<strong>' + m.name_cn + '</strong> (' + m.name + ')<br>'
-      + '🔋 ' + m.battery_kwh + ' kWh · 📏 ' + m.range_km + ' km · 📅 ' + (m.year_range||'');
-    // Auto-fill nickname
-    if (!document.getElementById('newNick').value) {
-      document.getElementById('newNick').value = m.name_cn || m.name;
-    }
-  } else {
-    _selectedModelData = null;
-    info.style.display = 'none';
-  }
-}
-
-function hideAddVehicle() {
-  document.getElementById('addOverlay').classList.remove('show');
-  document.getElementById('addSheet').classList.remove('show');
-}
-
-function renderNewColorPicker() {
-  const container = document.getElementById('newColorPicker');
-  container.innerHTML = COLORS.map(c =>
-    `<div class="color-chip ${c.id==='midnight_silver'?'active':''}" style="background:${c.hex}" onclick="selectNewColor('${c.id}')" title="${c.cn}"></div>`
-  ).join('');
-}
-
-let _selectedNewColor = 'midnight_silver';
-function selectNewColor(id) {
-  _selectedNewColor = id;
-  const hex = COLORS.find(x => x.id === id)?.hex;
-  if (hex) {
-    document.querySelectorAll('#newColorPicker .color-chip').forEach(c => c.classList.remove('active'));
-    const el = document.querySelector('#newColorPicker .color-chip[style*="'+hex+'"]');
-    if (el) el.classList.add('active');
-  }
-}
-
-function renderNewInteriorPicker() {
-  const container = document.getElementById('newInteriorPicker');
-  container.innerHTML = INTERIOR_COLORS_DATA.map(function(c) {
-    return '<div class="color-chip'+(c.id==='black'?' active':'')+'" style="background:'+c.hex+'" onclick="selectInteriorColor(\''+c.id+'\')" title="'+c.cn+'"></div>';
-  }).join('');
-}
-
-function selectInteriorColor(id) {
-  _selectedInteriorColor = id;
-  const hex = INTERIOR_COLORS_DATA.find(function(x) { return x.id === id; })?.hex;
-  if (hex) {
-    document.querySelectorAll('#newInteriorPicker .color-chip').forEach(function(c) { c.classList.remove('active'); });
-    var el = document.querySelector('#newInteriorPicker .color-chip[style*="'+hex+'"]');
-    if (el) el.classList.add('active');
-  }
-}
-
-async function decodeNewVin() {
-  const vin = document.getElementById('newVin').value.trim().toUpperCase();
-  const rd = document.getElementById('newVinResult');
-  if (vin.length !== 17) {
-    rd.className = 'vin-result error show'; rd.style.display = 'block';
-    rd.textContent = '⚠️ VIN 必须是 17 位';
-    return;
-  }
-  // Auto-fill nick
-  if (!document.getElementById('newNick').value) {
-    document.getElementById('newNick').value = 'My Tesla';
-  }
-  // Try server decode
-  const base = getActiveUrl();
-  if (base && !base.includes('x.x')) {
-    try {
-      const r = await fetch(base+'/api/decode-vin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vin})});
-      const d = await r.json();
-      if (d.model) {
-        rd.className = 'vin-result success show'; rd.style.display = 'block';
-        rd.innerHTML = `✅ <strong>${d.model.name}</strong> · ${d.year||'?'}<br>📍 ${d.origin?.country||'?'} · ${d.origin?.plant||'?'}<br>🔋 ${d.model.battery||'?'} · ⛰️ ${d.model.range_km||'?'}km`;
-        if (!document.getElementById('newNick').value || document.getElementById('newNick').value === 'My Tesla') {
-          document.getElementById('newNick').value = d.model.name;
-        }
+async function decVIN(){
+  const vin=document.getElementById('nVIN').value.trim().toUpperCase();
+  const rd=document.getElementById('nVR');
+  if(vin.length!==17){rd.className='vin-res bad show';rd.textContent='⚠️ VIN 必须是 17 位';return}
+  const b=getUrl();
+  if(b&&!b.includes('x.x')){
+    try{
+      const r=await fetch(b+'/api/decode-vin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vin})});
+      const d=await r.json();
+      if(d.model){
+        rd.className='vin-res ok show';rd.innerHTML='✅ <b>'+d.model.name+'</b> · '+d.year+'<br>📍 '+d.origin?.country+' · '+d.origin?.plant+'<br>🔋 '+d.model.battery+' · ⛰️ '+d.model.range_km+'km';
+        if(!document.getElementById('nNick').value) document.getElementById('nNick').value=d.model.name;
         return;
       }
-    } catch(e) {}
+    }catch(e){}
   }
-  // Local guess
-  const guess = vin.startsWith('5YJSB7') ? 'Model S 85D' : vin.startsWith('5YJ') ? 'Tesla (USA)' : vin.startsWith('LRW') ? 'Tesla (China)' : 'Tesla';
-  rd.className = 'vin-result success show'; rd.style.display = 'block';
-  rd.textContent = `🔍 ${guess}`;
-  if (!document.getElementById('newNick').value || document.getElementById('newNick').value === 'My Tesla') {
-    document.getElementById('newNick').value = guess;
-  }
+  const g=vin.startsWith('5YJSB7')?'Model S 85D':vin.startsWith('5YJ')?'Tesla (USA)':'Tesla';
+  rd.className='vin-res ok show';rd.textContent='🔍 '+g;
+  if(!document.getElementById('nNick').value) document.getElementById('nNick').value=g;
 }
 
-function saveNewVehicle() {
-  const vin = document.getElementById('newVin').value.trim().toUpperCase();
-  const nick = document.getElementById('newNick').value.trim();
-  const note = document.getElementById('newNote').value.trim();
-  const subModel = document.getElementById('newSubModel').value;
-  const selYear = document.getElementById('newYear').value;
-  const region = document.getElementById('newRegion').value;
-
-  // VIN is optional — only validate if filled
-  if (vin && vin.length !== 17) {
-    toast('⚠️ VIN 应为 17 位', 'error');
-    return;
-  }
-
-  // Must have EITHER VIN or model selected
-  const isModelMode = _selectedModelData !== null;
-  if (!vin && !isModelMode) {
-    toast('⚠️ 请扫 VIN 或选择车型', 'error');
-    return;
-  }
-
-  // Guess model info
-  let modelName = 'Tesla';
-  let year = parseInt(selYear) || null;
-  let battery = '';
-  let range = null;
-  let icon = '🚗';
-
-  if (isModelMode && _selectedModelData) {
-    modelName = _selectedModelData.name || '';
-    battery = (_selectedModelData.battery_kwh || '') + 'kWh';
-    range = _selectedModelData.range_km || null;
-    icon = _selectedModelData.icon || '🚗';
-    const iconMap = {'S':'🚗','X':'🚙','3':'🚘','Y':'🚙','C':'🛻','R':'🏎️'};
-    if (!icon || icon === '🚗') {
-      const series = (modelName.match(/Model ([SX3YCR])/) || [])[1];
-      icon = iconMap[series] || '🚗';
-    }
-  } else if (vin) {
-    // VIN mode — guess from VIN prefix
-    if (vin.startsWith('5YJSB7') || vin.startsWith('5YJSA7')) {
-      modelName = 'Model S 85D'; icon = '🚗'; battery = '85kWh'; range = 443;
-      const yc = vin[9];
-      const years = {D:2013,E:2014,F:2015,G:2016,H:2017};
-      year = years[yc] || 2015;
-    } else if (vin.startsWith('5YJSA4')) {
-      modelName = 'Model S 85'; icon = '🚗'; battery = '85kWh'; range = 426;
-    } else if (vin.startsWith('5YJSA1') || vin.startsWith('5YJSA3')) {
-      modelName = 'Model S 60'; icon = '🚗';
-    } else if (vin.startsWith('5YJSA5')) {
-      modelName = 'Model S P85'; icon = '🚗';
-    } else if (vin.startsWith('5YJ3')) {
-      modelName = 'Model 3'; icon = '🚘';
-    } else if (vin.startsWith('5YJX')) {
-      modelName = 'Model X'; icon = '🚙';
-    } else if (vin.startsWith('5YJY') || vin.startsWith('LRWY')) {
-      modelName = 'Model Y'; icon = '🚙';
-    } else if (vin.startsWith('LRW3')) {
-      modelName = 'Model 3 (China)'; icon = '🚘';
-    } else if (vin.startsWith('7G2')) {
-      modelName = 'Cybertruck'; icon = '🛻';
-    }
-  }
-
-  const vehicle = {
-    id: 'v_' + Date.now(),
-    nick: nick || modelName,
-    vin: vin,
-    connType: _connType,
-    modelName: modelName,
-    year: year,
-    battery: battery,
-    range: range,
-    color: _selectedNewColor,
-    customHex: document.getElementById('newCustomHex').value.trim(),
-    wheelSize: document.getElementById('newWheelSize').value,
-    mcu: document.getElementById('newMcu').value,
-    bodyStyle: document.getElementById('newBodyStyle').value,
-    interiorColor: _selectedInteriorColor,
-    interiorCustomHex: document.getElementById('newCustomInteriorHex').value.trim(),
-    subModel: subModel,
-    region: region,
-    note: note,
-    icon: icon,
-    createdAt: Date.now(),
-  };
-
-  vehicles.push(vehicle);
-  activeVehicleId = vehicle.id;
-  saveVehicles();
-  hideAddVehicle();
-
-  renderVehiclePicker();
-  updateVehicleUI();
-  updateCarVisual();
-  toast(`✅ ${nick} 已绑定`);
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   CAR VISUAL
-══════════════════════════════════════════════════════════════════ */
-
-const CAR = {locked:true,doorsOpen:false,frunkOpen:false,trunkOpen:false,windowsVent:false,lightsOn:false,flashActive:false,charging:false,connected:false,honking:false};
-
-function updateCarVisual() {
-  const wrap = document.getElementById('carWrap');
-  const glow = document.getElementById('carGlow');
-  const badge = document.getElementById('stateLabel');
-  const dot = document.getElementById('stateDot');
-  wrap.className = 'car-svg-wrap';
-  glow.className = 'glow';
-
-  // ── Hide all state groups first ──
-  document.querySelectorAll('.state-charging, .state-frunk, .state-trunk, .state-lights, .state-flash').forEach(g => {
-    g.style.display = 'none';
+function saveV(){
+  const vin=document.getElementById('nVIN').value.trim().toUpperCase();
+  const nick=document.getElementById('nNick').value.trim();
+  const note=document.getElementById('nNote').value.trim();
+  if(!vin||vin.length!==17){toast('⚠️ 输入有效 VIN','');return}
+  if(!nick){toast('⚠️ 填写昵称','');return}
+  for(let o='',i=0;i<17;i++)if('IOQ'.includes(vin[i])){o=vin[i];break}
+  if(o){toast('⚠️ VIN 不能包含 '+o,'');return}
+  let mn='Tesla',yr=null,bt='',rg=null,ic='🚗';
+  if(vin.startsWith('5YJSB7')||vin.startsWith('5YJSA7')){mn='Model S 85D';bt='85kWh';rg=443;const ys={D:2013,E:2014,F:2015,G:2016};yr=ys[vin[9]]||2015}
+  else if(vin.startsWith('5YJSA4')){mn='Model S 85';bt='85kWh';rg=426}
+  else if(vin.startsWith('5YJSA1')||vin.startsWith('5YJSA3')){mn='Model S 60'}
+  else if(vin.startsWith('5YJ3')){mn='Model 3';ic='🚘'}
+  else if(vin.startsWith('5YJX')){mn='Model X';ic='🚙'}
+  else if(vin.startsWith('LRW3')){mn='Model 3 (China)';ic='🚘'}
+  else if(vin.startsWith('7G2')){mn='Cybertruck';ic='🛻'}
+  vehicles.push({
+    id:'v_'+Date.now(),nick:nick,vin:vin,modelName:mn,year:yr,battery:bt,range:rg,color:_selC,
+    note:note,icon:ic,createdAt:Date.now(),
   });
-  // Door seams
-  document.querySelector('.door-seams').style.display = 'none';
-
-  // ── Glow ──
-  if (CAR.flashActive) {
-    glow.classList.add('locked');
-  } else if (CAR.doorsOpen || !CAR.locked) {
-    glow.classList.add('unlocked');
-  } else if (CAR.locked) {
-    glow.classList.add('locked');
-  }
-  if (CAR.charging) glow.classList.add('charging');
-
-  // ── State label ──
-  if (!CAR.connected) {
-    badge.textContent = '离线'; dot.style.background = 'var(--onSurfaceMuted)';
-    wrap.style.opacity = '.5';
-  } else if (CAR.flashActive) {
-    badge.textContent = '💡 闪灯'; dot.style.background = 'var(--amber)';
-    wrap.style.opacity = '1';
-  } else if (CAR.doorsOpen || !CAR.locked) {
-    badge.textContent = '🔓 已开门'; dot.style.background = 'var(--green)';
-    wrap.style.opacity = '1';
-  } else if (CAR.locked) {
-    badge.textContent = '🔒 已锁门'; dot.style.background = 'var(--red)';
-    wrap.style.opacity = '1';
-  }
-
-  // ── Frunk ──
-  if (CAR.frunkOpen) {
-    document.querySelector('.state-frunk').style.display = 'block';
-    badge.textContent = '▲ 前备箱开'; dot.style.background = 'var(--amber)';
-  }
-  // ── Trunk ──
-  if (CAR.trunkOpen) {
-    document.querySelector('.state-trunk').style.display = 'block';
-    if (!CAR.frunkOpen) { badge.textContent = '▲ 后备箱开'; dot.style.background = 'var(--amber)'; }
-  }
-  // ── Lights (on) ──
-  if (CAR.lightsOn) {
-    document.querySelector('.state-lights').style.display = 'block';
-  }
-  // ── Flash ──
-  if (CAR.flashActive) {
-    document.querySelector('.state-flash').style.display = 'block';
-    wrap.classList.add('shake');
-    setTimeout(() => wrap.classList.remove('shake'), 300);
-    setTimeout(() => { CAR.flashActive = false; updateCarVisual(); }, 400);
-  }
-  // ── Charging ──
-  if (CAR.charging) {
-    document.querySelector('.state-charging').style.display = 'block';
-    badge.textContent = '⚡ 充电中'; dot.style.background = 'var(--accent)';
-  }
-  // ── Honk ──
-  if (CAR.honking) {
-    wrap.classList.add('honk');
-    setTimeout(() => { CAR.honking = false; updateCarVisual(); }, 500);
-  }
-  // ── Unlocked: show door seams ──
-  if (CAR.doorsOpen || !CAR.locked) {
-    document.querySelector('.door-seams').style.display = 'block';
-  }
+  actV=vehicles[vehicles.length-1].id;
+  sv();hideAV();
+  renderVP();updUI();updCar();
+  toast('✅ '+nick+' 已绑定');
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   COMMANDS
-══════════════════════════════════════════════════════════════════ */
+// ═══ VEHICLE PICKER ═══
+function showVP(){document.getElementById('oVP').classList.add('show');document.getElementById('sVP').classList.add('show');renderVP()}
+function hideVP(){document.getElementById('oVP').classList.remove('show');document.getElementById('sVP').classList.remove('show')}
+function renderVP(){
+  const l=document.getElementById('vpList');
+  l.innerHTML=vehicles.map(v=>{
+    const color=COLORS.find(c=>c.id===v.color);
+    return '<div class="v-item'+(v.id===actV?' on':'')+'" onclick="pickV(\\''+v.id+'\\')"><span class="vi-icon">'+(v.icon||'🚗')+'</span><div class="vi-info"><div class="vi-n">'+v.nick+'</div><div class="vi-s">'+v.modelName+' · '+(v.vin?v.vin.slice(0,5)+'…':'—')+'</div></div><span class="vi-check">✓</span></div>';
+  }).join('');
+}
+function pickV(id){actV=id;localStorage.setItem('tsl_act',id);sv();hideVP();renderVP();updUI();updCar();}
 
-async function sendCmd(cmd) {
-  const btn = event?.target?.closest('.qc,.lock-btn');
-  btn?.style.setProperty('opacity','.5');
-  if (cmd==='frunk'){CAR.frunkOpen=!CAR.frunkOpen;CAR.locked=false}
-  else if (cmd==='trunk'){CAR.trunkOpen=!CAR.trunkOpen;CAR.locked=false}
-  else if (cmd==='lock'){CAR.locked=true;CAR.doorsOpen=false;CAR.frunkOpen=false;CAR.trunkOpen=false}
-  else if (cmd==='unlock'){CAR.locked=false;CAR.doorsOpen=true}
-  else if (cmd==='flash_lights'){CAR.flashActive=true;setTimeout(()=>{CAR.flashActive=false;updateCarVisual()},800)}
-  else if (cmd==='honk'){CAR.honking=true}
-  else if (cmd==='windows_vent'){CAR.windowsVent=true}
-  else if (cmd==='windows_close'){CAR.windowsVent=false}
-  updateCarVisual();
-  // Sandbox: simulate success
-  const v = activeVehicle();
-  if (v && v.connType === 'sandbox') {
-    toast(`✅ ${['lock','🔒已锁门','unlock','🔓已开门','frunk','🟢前备箱','trunk','🟤后备箱','flash_lights','💡闪灯','honk','📯鸣笛','windows_vent','🪟通风','windows_close','🔒关窗','charge_port_open','🔌充电口开','charge_port_close','🔌充电口关','mirrors_fold','🪞折叠','mirrors_unfold','🪞展开','interior_lights_on','🔦灯开','interior_lights_off','🔦灯关','hvac_on','❄️空调开','hvac_off','❄️空调关'][cmd]||cmd}`);
-    btn?.style.removeProperty('opacity');
-    return;
-  }
-  try {
-    const r = await api('POST',cmd);
-    if(r&&r.success) toast(`✅ ${{lock:'🔒已锁门',unlock:'🔓已开门',frunk:'🟢前备箱',trunk:'🟤后备箱',flash_lights:'💡闪灯',honk:'📯鸣笛',windows_vent:'🪟通风',windows_close:'🔒关窗'}[cmd]||cmd}`);
-    else if(r){if(cmd==='lock')CAR.locked=false;else if(cmd==='unlock'){CAR.locked=true;CAR.doorsOpen=false}else if(cmd==='frunk')CAR.frunkOpen=!CAR.frunkOpen;else if(cmd==='trunk')CAR.trunkOpen=!CAR.trunkOpen;updateCarVisual();toast('⚠️失败','error')}
-  }finally{btn?.style.removeProperty('opacity')}
+// ═══ CAR STATE ═══
+const CAR={locked:true,doors:false,frunk:false,trunk:false,windowsVent:false,connected:false,charging:false};
+function toLock(e){
+  const c=CAR.locked?'unlock':'lock';const b=document.getElementById('lkBtn');const l=document.getElementById('lkLbl');
+  if(c==='unlock'){CAR.locked=false;CAR.doors=true;b.className='lock-btn u';l.textContent='🔓 开门'}else{CAR.locked=true;CAR.doors=false;b.className='lock-btn l';l.textContent='🔒 锁门'}
+  api('POST',c).then(r=>{if(!r||!r.success){CAR.locked=!CAR.locked;updLK();toast('⚠️ 失败','')}});
+}
+function updLK(){
+  const b=document.getElementById('lkBtn'),l=document.getElementById('lkLbl');
+  if(!CAR.locked){b.className='lock-btn u';l.textContent='🔓 开门'}else{b.className='lock-btn l';l.textContent='🔒 锁门'}
+}
+function sCmd(c){
+  if(c==='frunk')CAR.frunk=!CAR.frunk;
+  else if(c==='trunk')CAR.trunk=!CAR.trunk;
+  else if(c==='lock'){CAR.locked=true;CAR.doors=false}
+  else if(c==='unlock'){CAR.locked=false;CAR.doors=true}
+  else if(c==='windows_vent')CAR.windowsVent=true;
+  else if(c==='windows_close')CAR.windowsVent=false;
+  else if(c==='charge_port')CAR.charging=!CAR.charging;
+  updLK();const k={lock:'🔒锁门',unlock:'🔓开门',frunk:'🟢前备箱',trunk:'🟤后备箱',flash_lights:'💡闪灯',honk:'📯鸣笛',windows_vent:'🪟通风',windows_close:'🔒关窗',charge_port:'🔌充电口'}[c]||c;
+  api('POST',c).then(r=>toast(r?.success?'✅ '+k:'⚠️ 失败',''));
 }
 
-async function toggleLock(e) {
-  if(e){const r=e.currentTarget.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;const ri=document.createElement('span');ri.className='ripple';ri.style.cssText=`left:${x}px;top:${y}px;width:10px;height:10px;margin:-5px 0 0 -5px`;e.currentTarget.appendChild(ri);setTimeout(()=>ri.remove(),600)}
-  const cmd=CAR.locked?'unlock':'lock';
-  document.getElementById('lockBtn').classList.add('loading');
-  if(cmd==='unlock'){CAR.locked=false;CAR.doorsOpen=true}else{CAR.locked=true;CAR.doorsOpen=false;CAR.frunkOpen=false;CAR.trunkOpen=false}
-  updateCarVisual(); updateLockUI();
-  // Sandbox: simulate
-  const sv = activeVehicle();
-  if (sv && sv.connType === 'sandbox') {
-    toast(CAR.locked?'🔒已锁门':'🔓已开门');
-    document.getElementById('lockBtn').classList.remove('loading');
-    return;
-  }
-  try {
-    const r=await api('POST',cmd);
-    if(!r||!r.success){if(cmd==='unlock'){CAR.locked=true;CAR.doorsOpen=false}else{CAR.locked=false;CAR.doorsOpen=true}updateCarVisual();updateLockUI();toast('⚠️失败','error')}
-    else toast(CAR.locked?'🔒已锁门':'🔓已开门');
-  }finally{document.getElementById('lockBtn').classList.remove('loading')}
-}
-function updateLockUI(){const b=document.getElementById('lockBtn');const l=document.getElementById('lockLabel');const i=b.querySelector('.icon');if(CAR.locked){b.className='lock-btn locked';i.textContent='🔒';l.textContent='锁门'}else{b.className='lock-btn unlocked';i.textContent='🔓';l.textContent='已开门'}}
+// ═══ CLIMATE ═══
+function adjTemp(d){/* stub */}
 
-/* ══════════════════════════════════════════════════════════════════
-   NETWORK / API
-══════════════════════════════════════════════════════════════════ */
-
-function getActiveUrl() {
-  const mode = document.querySelector('.mode-chip.active')?.dataset.mode;
-  if(mode==='tailscale') return 'http://'+(document.getElementById('tsIp').value||'100.x.x.x')+':5000';
-  if(mode==='ddns') return 'http://'+(document.getElementById('ddnsDomain').value||'');
-  return document.getElementById('serverUrl').value||'';
+// ═══ NETWORK ═══
+function getUrl(){
+  const m=document.querySelector('.mc.on')?.dataset?.m||'tailscale';
+  const ips={tailscale:document.getElementById('sTS').value,wifi:'http://10.10.10.140:5000',ddns:document.getElementById('sDDNS').value};
+  return ips[m]||'http://10.10.10.140:5000';
 }
-function getToken(){const t=document.getElementById('apiToken').value;localStorage.setItem('tsl_tok',t);return t}
-async function api(method,path,body){
-  const url=getActiveUrl()+'/api/'+path;
-  if(url.includes('x.x')||!url)return null;
-  const h={'Content-Type':'application/json'};const t=getToken();if(t)h['X-Api-Token']=t;
-  const opts={method,headers:h,signal:AbortSignal.timeout(8000)};
-  if(body&&method!=='GET')opts.body=JSON.stringify(body);
-  try{const r=await fetch(url,opts);if(!r.ok)return null;return await r.json()}catch(e){return null}
+function api(m,p){
+  const u=getUrl()+'/api/'+p;
+  if(!u||u.includes('x.x'))return Promise.resolve(null);
+  const h={'Content-Type':'application/json'};const t=document.getElementById('sTok').value;if(t)h['X-Api-Token']=t;
+  return fetch(u,{method:m,headers:h,signal:AbortSignal.timeout(5000)}).then(r=>r.ok?r.json():null).catch(()=>null);
 }
 
-/* ── DIAGNOSTICS ── */
-async function runDiagnostics() {
-  const grid = document.getElementById('diagGrid');
-  const summary = document.getElementById('diagSummary');
-
-  // Reset to "checking" state
-  grid.querySelectorAll('.dc-indicator').forEach(d => { d.className = 'dc-indicator offline'; });
-  grid.querySelectorAll('.dc-status').forEach(d => { d.textContent = '检测中...'; });
-  summary.innerHTML = '⏳ 正在检测系统状态...';
-
-  // Server diagnostics
-  const r = await api('GET', 'diagnostics');
-
-  if (!r) {
-    // Orange Pi offline — show limited local info
-    grid.querySelectorAll('.dc-indicator')[0].className = 'dc-indicator error';
-    grid.querySelectorAll('.dc-status')[0].textContent = 'Pi 未连接 — 无法检测';
-
-    // Check phone's own Bluetooth
-    if ('bluetooth' in navigator) {
-      try {
-        const avail = await navigator.bluetooth.getAvailability();
-        grid.querySelectorAll('.dc-indicator')[2].className = avail ? 'dc-indicator ok' : 'dc-indicator error';
-        grid.querySelectorAll('.dc-status')[2].textContent = avail ? '手机蓝牙可用' : '手机蓝牙未开启';
-      } catch(e) {
-        grid.querySelectorAll('.dc-indicator')[2].className = 'dc-indicator warn';
-        grid.querySelectorAll('.dc-status')[2].textContent = '无法检测蓝牙状态';
-      }
-    } else {
-      grid.querySelectorAll('.dc-indicator')[2].className = 'dc-indicator warn';
-      grid.querySelectorAll('.dc-status')[2].textContent = '此浏览器不支持 Web Bluetooth';
-    }
-
-    // Everything else is unknown
-    for (let i = 1; i <= 5; i++) {
-      if (i === 2) continue; // already set
-      const indicators = grid.querySelectorAll('.dc-indicator');
-      const statuses = grid.querySelectorAll('.dc-status');
-      if (indicators[i]) indicators[i].className = 'dc-indicator warn';
-      if (statuses[i]) statuses[i].textContent = 'Orange Pi 离线';
-    }
-
-    summary.innerHTML = '<span class="ds-item"><span class="ds-dot error"></span>Pi 离线</span><span class="ds-item"><span class="ds-dot warn"></span>部分信息不可用</span>';
-    return;
-  }
-
-  // ── Render each diagnostic card ──
-  const diagItems = [
-    { key: 'can',         icon: '🔌', name: 'CAN 总线', idx: 0 },
-    { key: 'cellular',    icon: '📡', name: '4G/5G 网络', idx: 1 },
-    { key: 'bluetooth',   icon: '📶', name: '蓝牙 (Pi)', idx: 2 },
-    { key: 'internet',    icon: '🌐', name: '互联网', idx: 3 },
-    { key: 'tailscale',   icon: '🔗', name: 'Tailscale', idx: 4 },
-    { key: 'orange_pi',   icon: '🖥️', name: 'Orange Pi', idx: 5 },
-  ];
-
-  const indicators = grid.querySelectorAll('.dc-indicator');
-  const statuses = grid.querySelectorAll('.dc-status');
-
-  diagItems.forEach(item => {
-    let status = 'error';
-    let detail = '未知';
-
-    if (item.key === 'internet') {
-      status = r.cellular?.internet ? 'ok' : 'error';
-      detail = r.cellular?.internet ? '互联网可达' : '无互联网连接';
-    } else if (item.key === 'tailscale') {
-      status = r.cellular?.tailscale ? 'ok' : 'warn';
-      detail = r.cellular?.tailscale || '未安装 Tailscale';
-    } else if (item.key === 'orange_pi') {
-      status = 'ok';
-      detail = 'API 响应正常 · 在线';
-    } else {
-      const data = r[item.key];
-      if (data) {
-        status = data.status || 'error';
-        detail = data.detail || '';
-      }
-    }
-
-    if (indicators[item.idx]) {
-      indicators[item.idx].className = `dc-indicator ${status}`;
-    }
-    if (statuses[item.idx]) {
-      statuses[item.idx].textContent = detail;
-    }
-  });
-
-  // ── Summary bar ──
-  const statusCounts = { ok: 0, warn: 0, error: 0 };
-  indicators.forEach(d => {
-    if (d.classList.contains('ok')) statusCounts.ok++;
-    else if (d.classList.contains('warn')) statusCounts.warn++;
-    else if (d.classList.contains('error')) statusCounts.error++;
-  });
-
-  const dotsClass = statusCounts.error > 0 ? 'error' : statusCounts.warn > 0 ? 'warn' : 'ok';
-  const allOk = statusCounts.error === 0 && statusCounts.warn === 0;
-  summary.innerHTML = `
-    <span class="ds-item"><span class="ds-dot ${dotsClass}"></span>全部 ${allOk ? '正常' : Object.entries(statusCounts).filter(([k,v])=>v>0).map(([k,v])=>`${k=='ok'?'正常':k=='warn'?'警告':'异常'}(${v})`).join(' · ')}</span>
-    <span class="ds-item"><span class="ds-dot ${dotsClass}"></span>
-    ${statusCounts.error > 0 ? '⚠️ 需要处理' : statusCounts.warn > 0 ? '⚠️ 部分异常' : '✅ 一切正常'}
-    </span>
-  `;
-}
-
-async function pollStatus(){
-  const v = activeVehicle();
-  const isSandbox = v && v.connType === 'sandbox';
-  const dot=document.getElementById('connDot');const label=document.getElementById('connLabel');
-
-  // Sandbox mode: generate mock data
-  if (isSandbox) {
-    CAR.connected = true;
-    dot.className = 'conn-dot online';
-    label.textContent = '🧪 模拟';
-    const mockSoc = 68 + Math.floor(Math.random() * 10);
-    const mockData = {
-      connected: true, battery_soc: mockSoc,
-      gear: Math.random() > 0.8 ? 'D' : 'P',
-      ambient_temp_c: 22 + Math.floor(Math.random() * 8),
-      doors: { locked: Math.random() > 0.3 },
-      charge_port: { state: Math.random() > 0.7 ? 'LOCKED' : 'CLOSED', charging: Math.random() > 0.8 },
-      windows: Math.random() > 0.7 ? 'VENTED' : 'CLOSED',
-      drive_mode: Math.random() > 0.6 ? 'CHILL' : 'SPORT',
-    };
-    applyStatus(mockData);
-    updateCarVisual();
-    return;
-  }
-
+async function pollS(){
   const r=await api('GET','status');
-  if(!r){dot.className='conn-dot offline';label.textContent='未连接';CAR.connected=false;document.getElementById('stateDot').style.background='var(--onSurfaceMuted)';document.getElementById('stateLabel').textContent='离线';updateCarVisual();return}
+  const d=document.getElementById('coDot'),l=document.getElementById('coLbl');
+  if(!r){d.className='st-dot off';l.textContent='未连接';CAR.connected=false;return}
   CAR.connected=true;
-  dot.className=`conn-dot ${r.connected?'online':'offline'}`;
-  label.textContent=r.connected?'已连接':'CAN离线';
-  applyStatus(r);
-  updateCarVisual();
-}
-
-/* ── Apply status data to UI ── */
-function applyStatus(r) {
-  if (!r) return;
-  // Battery ring
+  d.className='st-dot ok';l.textContent='已连接';
   if(r.battery_soc!=null){
-    const pct=r.battery_soc;
-    document.getElementById('battPct').textContent=pct;
-    const circ=document.getElementById('battArc');
-    const circumference=113.1;
-    const offset=circumference-(circumference*pct/100);
-    circ.setAttribute('stroke-dashoffset',offset);
-    circ.setAttribute('stroke',pct>50?'var(--green)':pct>20?'var(--amber)':'var(--red)');
-  }
-  // Range
-  if(r.battery_soc!=null){
-    const estKm=Math.round(443*r.battery_soc/100);
-    document.getElementById('rangeKm').textContent=estKm;
-  }
-  // Gear
-  if(r.gear){
-    document.getElementById('gearDisplay').textContent=r.gear;
-  }
-  // Temperature
-  if(r.ambient_temp_c!=null){
-    document.getElementById('ambientTemp').textContent=Math.round(r.ambient_temp_c);
-  }
-  // State badge
-  const stateDot=document.getElementById('stateDot');
-  const stateLabel=document.getElementById('stateLabel');
-  if(r.doors?.locked){
-    stateDot.style.background='var(--red)';stateLabel.textContent='已锁';
-  }else if(r.charge_port?.charging){
-    stateDot.style.background='var(--green)';stateLabel.textContent='充电中';
-  }else{
-    stateDot.style.background='var(--onSurfaceMuted)';stateLabel.textContent='就绪';
+    const n=document.getElementById('bpct'),f=document.getElementById('bpf');
+    const pct=r.battery_soc;const cl=pct>50?'g':pct>20?'a':'r';
+    n.className='cb-num '+cl;n.innerHTML=pct+'<span style="font-size:14px;font-weight:500;letter-spacing:0">%</span>';
+    f.className='cb-fill '+cl;f.style.width=pct+'%';
   }
 }
-}
 
-/* ══════════════════════════════════════════════════════════════════
-   UI HELPERS
-══════════════════════════════════════════════════════════════════ */
-
-function navigateTo(name){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  document.querySelectorAll('.dock-item').forEach(d=>d.classList.remove('active'));
-  const idx = {controls:1,diagnostics:2,settings:3}[name] || 1;
-  document.querySelector('.dock-item:nth-child('+idx+')').classList.add('active');
-  if (name === 'diagnostics') runDiagnostics();
-}
-function showVehiclePicker(){document.getElementById('pickerOverlay').classList.add('show');document.getElementById('pickerSheet').classList.add('show');renderVehiclePicker()}
-function hideVehiclePicker(){document.getElementById('pickerOverlay').classList.remove('show');document.getElementById('pickerSheet').classList.remove('show')}
-function toast(msg,type='success'){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._hide);el._hide=setTimeout(()=>el.classList.remove('show'),2000)}
-
-/* ── Tesla Fleet API Auth ── */
-let _teslaDeviceCode = null;
-async function startTeslaAuth() {
-  const btn = document.getElementById('teslaAuthBtn');
-  const status = document.getElementById('teslaAuthStatus');
-  const progress = document.getElementById('teslaAuthProgress');
-  btn.disabled = true;
-  btn.textContent = '请求中...';
-  progress.style.display = 'block';
-  progress.innerHTML = '正在发起 OAuth 授权...';
-
-  const auth = await api('GET', 'tesla/auth');
-  if (!auth || auth.error) {
-    progress.innerHTML = '❌ 授权失败: ' + (auth?.error || '无法连接服务器');
-    btn.disabled = false; btn.textContent = '重试';
+// ═══ DIAGNOSTICS ═══
+async function runDiag(){
+  const g=document.getElementById('dgG');const s=document.getElementById('dgS');
+  g.querySelectorAll('.dgd').forEach(d=>d.className='dgd off');
+  g.querySelectorAll('.dgt').forEach(d=>d.textContent='检测中...');
+  s.innerHTML='⏳ 检测系统状态...';
+  const r=await api('GET','diagnostics');
+  if(!r){
+    g.querySelectorAll('.dgd')[0].className='dgd er';g.querySelectorAll('.dgt')[0].textContent='Pi 离线';
+    s.innerHTML='<span class="ds"><span class="dd er"></span>Pi 离线</span>';
     return;
   }
-
-  _teslaDeviceCode = auth.device_code;
-  progress.innerHTML = ''
-    + '<div style="margin-bottom:8px">1. 打开此链接:</div>'
-    + '<div style="background:#000;padding:8px;border-radius:6px;word-break:break-all;font-size:10px;font-family:monospace;color:var(--accent);margin-bottom:8px">'
-    + (auth.verification_uri_complete || auth.verification_uri) + '</div>'
-    + '<div style="margin-bottom:8px">2. 输入代码: <strong style="font-size:16px;color:#fff">' + auth.user_code + '</strong></div>'
-    + '<div style="margin-bottom:8px">3. 登录你的 Tesla 账号</div>'
-    + '<div style="color:var(--onSurfaceMuted);font-size:10px">⏳ 等待授权完成...</div>';
-
-  btn.textContent = '等待中';
-  btn.disabled = true;
-
-  // Poll for completion
-  const interval = (auth.interval || 5) * 1000;
-  const maxAttempts = 60;
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, interval));
-    const poll = await api('POST', 'tesla/auth/poll', {
-      device_code: _teslaDeviceCode,
-      interval: auth.interval || 5,
-    });
-    if (poll?.success) {
-      progress.innerHTML = '✅ 授权成功！正在获取车辆列表...';
-      status.textContent = '✅ 已授权';
-      status.style.color = 'var(--green)';
-      btn.textContent = '重新授权';
-      btn.disabled = false;
-      // Fetch vehicles
-      const vehicles = await api('GET', 'tesla/vehicles');
-      if (vehicles?.vehicles) {
-        progress.innerHTML += '<br>🚗 找到 ' + vehicles.vehicles.length + ' 辆车';
-        vehicles.vehicles.forEach(v => {
-          progress.innerHTML += '<br>• ' + (v.display_name || '未知') + ' (' + (v.vin || '').slice(-6) + ')';
-        });
-      }
-      return;
-    }
-    if (poll?.error === 'expired') {
-      progress.innerHTML = '⏰ 授权已过期，请重新开始';
-      btn.textContent = '重新授权';
-      btn.disabled = false;
-      return;
-    }
-    if (poll?.error) {
-      progress.innerHTML = '❌ 错误: ' + poll.error;
-      btn.textContent = '重试';
-      btn.disabled = false;
-      return;
-    }
-  }
-  progress.innerHTML = '⏰ 授权超时，请重新开始';
-  btn.textContent = '重新授权';
-  btn.disabled = false;
+  const items=[{k:'can',i:0},{k:'cellular',i:1},{k:'bluetooth',i:2},{k:'internet',i:3},{k:'tailscale',i:4}];
+  const dgd=g.querySelectorAll('.dgd');const dgt=g.querySelectorAll('.dgt');
+  items.forEach(it=>{
+    let st='er',dt='未知';
+    if(it.k==='internet'){st=r.cellular?.internet?'ok':'er';dt=r.cellular?.internet?'可达':'无连接'}
+    else if(it.k==='tailscale'){st=r.cellular?.tailscale?'ok':'wa';dt=r.cellular?.tailscale||'未安装'}
+    else{const d=r[it.k];if(d){st=d.status||'er';dt=d.detail||''}}
+    if(dgd[it.i])dgd[it.i].className='dgd '+st;
+    if(dgt[it.i])dgt[it.i].textContent=dt;
+  });
+  const stats={ok:0,er:0,wa:0};dgd.forEach(d=>{if(d.classList.contains('ok'))stats.ok++;else if(d.classList.contains('er'))stats.er++;else if(d.classList.contains('wa'))stats.wa++});
+  const ds=stats.er>0?'er':stats.wa>0?'wa':'ok';
+  s.innerHTML='<span class="ds"><span class="dd '+ds+'"></span>'+(stats.er>0?'⚠️ 需处理':stats.wa>0?'⚠️ 部分异常':'✅ 正常')+' · ok='+stats.ok+' er='+stats.er+' wa='+stats.wa+'</span>';
 }
 
-function init() {
-  // ── Toolbar ──
-  document.getElementById('apiToken').value=localStorage.getItem('tsl_tok')||'';
-  document.getElementById('tsIp').value=localStorage.getItem('tsl_ts')||'';
-  document.getElementById('ddnsDomain').value=localStorage.getItem('tsl_ddns')||'';
-  document.querySelectorAll('.mode-chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mode-chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');localStorage.setItem('tsl_mode',c.dataset.mode)}));
-  loadVehicles();
-  updateVehicleUI();
-  updateCarVisual();
-  pollStatus();
-  setInterval(pollStatus,15000);
+// ═══ NAVIGATION ═══
+function navTo(n){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+n).classList.add('active');
+  document.querySelectorAll('.dk-item').forEach(d=>d.classList.remove('active'));
+  const idx={main:0,diag:1,set:2}[n]||0;
+  document.querySelectorAll('.dk-item')[idx].classList.add('active');
+  if(n==='diag')runDiag();
 }
-init();
+
+// ═══ TOAST ═══
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(e._h);e._h=setTimeout(()=>e.classList.remove('show'),2000)}
+
+// ═══ INIT ═══
+function init(){
+  setInterval(()=>{const n=new Date();document.getElementById('ckTime').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')},1e3);
+  document.querySelectorAll('.mc').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.mc').forEach(x=>x.classList.remove('on'));c.classList.add('on')}));
+  loadV();renderVP();updUI();
+  setInterval(pollS,10e3);pollS();
+  document.getElementById('sUrl').value=localStorage.getItem('tsl_srv')||'';
+  document.getElementById('sTok').value=localStorage.getItem('tsl_tok')||'';
+  document.getElementById('sTS').value=localStorage.getItem('tsl_ts')||'';
+  document.getElementById('sDDNS').value=localStorage.getItem('tsl_ddns')||'';
+}
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
