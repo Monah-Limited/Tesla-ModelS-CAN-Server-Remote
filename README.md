@@ -1,7 +1,7 @@
 # 🚗 Tesla CANRemote by OpenFrunk
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-beta-green" alt="beta">
+  <img src="https://img.shields.io/badge/status-unfinished-yellow" alt="unfinished">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS-blue" alt="platform">
   <img src="https://img.shields.io/badge/languages-4-orange" alt="lang-4">
@@ -10,6 +10,8 @@
 <p align="center">
   <b><i>★ Let your Tesla always in control ★</i></b>
 </p>
+
+> ⚠️ **CAUTION** — This is an **unfinished prototype**. NOT a production-ready product. Use at your own risk. 🚧
 
 <p align="center">
   <img src="assets/app_ui.png" alt="Tesla Model S CAN Server App Preview" width="600">
