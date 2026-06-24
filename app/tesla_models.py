@@ -5,11 +5,6 @@ Tesla Model Database — All models, years, colors, VIN decoder
 # ── All Tesla Models Ever Made ───────────────────────────────────────
 
 TESLA_MODELS = [
-    # ── Roadster ──
-    {"id": "roadster_10", "name": "Roadster 1.0", "years": "2008-2012",
-     "brand": "Tesla", "type": "Sports", "body": "Convertible",
-     "vin_prefix": ["5YJRE1"], "battery": "53kWh", "range_km": 393},
-
     # ── Model S ──
     {"id": "ms_40",    "name": "Model S 40",       "years": "2013",        "vin_prefix": ["5YJSA1", "5YJSA2"], "battery": "40kWh", "range_km": 260},
     {"id": "ms_60",    "name": "Model S 60",       "years": "2013-2016",   "vin_prefix": ["5YJSA1", "5YJSA3"], "battery": "60kWh", "range_km": 335},
@@ -52,15 +47,7 @@ TESLA_MODELS = [
     {"id": "my_lr_awd","name":"Model Y Long Range AWD","years":"2020-2025","vin_prefix":["5YJY","LRWY"],      "battery":"75-82kWh","range_km": 533},
     {"id": "my_perf",  "name":"Model Y Performance","years":"2020-2025",  "vin_prefix":["5YJY","LRWY"],      "battery":"75-82kWh","range_km": 488},
 
-    # ── Cybertruck ──
-    {"id": "ct_beast", "name":"Cybertruck Cyberbeast","years":"2024-",    "vin_prefix":["7G2"],               "battery":"123kWh","range_km": 515},
-    {"id": "ct_awd",   "name":"Cybertruck AWD",   "years": "2024-",       "vin_prefix":["7G2"],               "battery":"123kWh","range_km": 547},
-    {"id": "ct_rwd",   "name":"Cybertruck RWD",   "years": "2025-",       "vin_prefix":["7G2"],               "battery":"123kWh","range_km": 400},
-
-    # ── Semi ──
-    {"id": "semi",     "name":"Tesla Semi",       "years": "2022-",       "vin_prefix":["7G2"],               "battery":"900kWh","range_km": 800},
 ]
-
 
 # ── Tesla Paint Colors ───────────────────────────────────────────────
 
