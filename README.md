@@ -340,7 +340,7 @@ Given the complete shutdown of official app access, I restructured the whole sol
 
 As an open-source enthusiast who advocates community co-development, I open-source all my code and hardware wiring docs here for non-commercial communication only. This project has no intention to crack vehicle safety firmware or conduct illegal vehicle modification. I just want to communicate with fellow Tesla owners who have encountered arbitrary official account bans and service cuts, to figure out reliable self-hosted control workarounds together.
 
-With solid legal awareness, rigorous mathematical logic and underlying engineering capabilities, I strictly limit this solution to legal self-owned vehicle local control only, without touching any core power and safety-related vehicle firmware. At the end of the day, it's simple: I own the car, so I should have the right to control my own car.
+Based on legal compliance boundaries, basic mathematical logic modeling, and advice from mechanics on underlying vehicle hardware and network architecture, I strictly limit this solution to legal self-owned vehicle local control only, without touching any core power and safety-related vehicle firmware. At the end of the day, it's simple: I own the car, so I should have the right to control my own car.
 
 ### The Stack
 
@@ -566,7 +566,7 @@ MIT — 随便用。只是别因为你的车出了意外来起诉我。这是个
 
 オープンソースコミュニティの共開発理念に基づき、コードと配線資料を公開しています。本プロジェクトは車両安全ファームウェアのクラッキングや違法改造を目的としたものではなく、公式の一方的なアカウント停止被害に遭ったオーナー同士で、安全な自前制御の代替案を情報共有するためのものです。
 
-法的知識、数学的論理、下位技術開発の三つの強みを活かし、本システムは自身の合法車両のローカル制御に限定し、車両の動力・安全に関わるコアファームウェアには一切触れていません。最後に一言：自分が所有する車は、自分自身で制御する権利があるはずです。
+法的コンプライアンスの境界線、基本的な数学的論理モデリング、そして修理工場のアドバイスに基づく車載ハードウェアとネットワークアーキテクチャを活かし、本システムは自身の合法車両のローカル制御に限定し、車両の動力・安全に関わるコアファームウェアには一切触れていません。最後に一言：自分が所有する車は、自分自身で制御する権利があるはずです。
 
 ---
 
@@ -591,7 +591,7 @@ MIT — 随便用。只是别因为你的车出了意外来起诉我。这是个
 
 오픈소스 커뮤니티 공동 개발 취지에 따라 모든 소스코드와 하드웨어 배선 문서를 비상업적 목적으로 공개했습니다. 본 프로젝트는 차량 안전 펌웨어 크래킹이나 불법 차량 개조를 목적으로 하지 않으며, 플랫폼의 일방적인 계정 정지 피해를 입은 차주들끼리 안전한 자체 제어 방안을 공유하기 위한 목적만 갖고 있습니다.
 
-법률 지식, 수학적 논리, 하위 시스템 개발 역량을 바탕으로 본 솔루션은 본인 소유의 합법 차량 로컬 제어에만 국한되며 차량 동력 및 안전 관련 핵심 펌웨어에는 일절 접근하지 않았습니다. 결국 가장 간단한 명제입니다: 내가 소유한 차는 내가 직접 제어할 권리가 있습니다.
+법적 컴플라이언스 경계, 기본적인 수학적 논리 모델링, 그리고 정비소의 조언에 기반한 차량 하드웨어 및 네트워크 아키텍처를 바탕으로 본 솔루션은 본인 소유의 합법 차량 로컬 제어에만 국한되며 차량 동력 및 안전 관련 핵심 펌웨어에는 일절 접근하지 않았습니다. 결국 가장 간단한 명제입니다: 내가 소유한 차는 내가 직접 제어할 권리가 있습니다.
 
 ---
 
