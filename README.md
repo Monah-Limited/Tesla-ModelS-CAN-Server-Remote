@@ -656,6 +656,22 @@ MIT — 随便用。只是别因为你的车出了意外来起诉我。这是个
 
 ---
 
+## 🗺️ Future: NFC Card Key Emulation
+
+A dedicated sub-project to **emulate Tesla Model 3 / Model Y's phone key NFC behaviour** on older Model S.
+
+**The vision:** Tap an NFC card (or phone) on a reader mounted near the door handle → the Orange Pi reads the card UID → sends the corresponding CAN command to lock/unlock/start. Same tap-and-go experience as a 2024 Tesla, without upgrading the whole car.
+
+- Hardware: USB PN532 NFC module or ACR122U reader
+- Cards: MIFARE Classic / NTAG cards with stored vehicle access IDs
+- Backward support: NFC cards stored in `data/nfc_cards.json`, mapped to driver profiles
+- Multi-user: Each family member has their own card, car sets seat/mirror/steering automatically
+- Future: BLE phone-as-key via emulated NFC handover
+
+> Status: 🔜 Hardware needed — PN532 ordered, code framework ready in `app/nfc.py`
+
+---
+
 ## 📁 Project Structure
 
 ```
