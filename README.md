@@ -4,7 +4,7 @@
 > Orange Pi 4 Pro + CANable 2.0 USB-CAN + Flask REST API + Tailscale P2P
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-unfinished-yellow" alt="unfinished">
+  <img src="https://img.shields.io/badge/status-alpha-orange" alt="alpha">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
   <img src="https://img.shields.io/badge/platform-Linux-blue" alt="platform">
   <img src="https://img.shields.io/badge/languages-4-orange" alt="lang-4">
@@ -17,8 +17,8 @@
   <b><i>★ Let your Tesla always in control ★</i></b>
 </p>
 
-> ⚠️ **CAUTION** — **Unfinished prototype.** NOT production-ready. Use at your own risk. 🚧  
-> 📅 Estimated completion: ~3 months. Hardware BOM and wiring guide coming soon.
+> ⚠️ **ALPHA** — Working prototype. Vehicle testing in progress across S/X/3/Y. 🚧  
+> 📅 CANable 2.0 received. CAN ID validation and wiring verification ongoing.
 
 <p align="center">
   <table>
@@ -445,9 +445,8 @@ Tesla-CANServer-MyRemote/
 
 ## 📅 Timeline
 
-> ⏳ **Estimated completion: ~3 months remaining.**
-> Prototype in active development. CANable 2.0 ordered for testing.
-> Hardware BOM and detailed wiring guide coming once vehicle-verified.
+> ⏳ **Active development.** CANable 2.0 received. CAN ID validation across 5 test vehicles in progress.
+> Hardware BOM and wiring guide being updated as testing confirms each vehicle.
 
 ---
 
@@ -471,7 +470,7 @@ Tesla-CANServer-MyRemote/
 
 | Item | Status |
 |------|:------:|
-| CAN bus communication (CANable 2.0) | 🔜 Hardware ordered |
+| CAN bus communication (CANable 2.0) | ✅ Hardware received, validation in progress |
 | Vehicle body control (lock, unlock, frunk, trunk) | ✅ Code ready, needs hardware |
 | Lights, horn, windows control | ✅ Code ready, needs hardware |
 | HVAC, charge port, mirrors control | ✅ Code ready, needs vehicle verification |
@@ -577,7 +576,7 @@ Tesla-CANServer-MyRemote/
 | Hardware BOM & wiring guide | ⏳ In progress |
 | Pre-built SD card image download | ⏳ In progress |
 | Vehicle safety disclaimer & documentation | ⏳ In progress |
-| **v1.0 stable release** | **🎯 Target: ~3 months** |
+| **v1.0 stable release** | **🎯 CAN ID validation targets S/X/3/Y** |
 
 > 💡 **Want to help?** PRs, issues, and ideas are all welcome. Pick any 🔜 item and start a discussion.
 
@@ -711,7 +710,7 @@ bash network/setup_network.sh
 
 ## 📅 Timeline
 
-> ⏳ **Estimated completion: ~3 months remaining.** This is a prototype in active development. The CAN bus hardware (CANable 2.0) has been ordered for testing. A detailed hardware bill of materials and wiring guide will be published once fully verified on the vehicle.
+> ⏳ **Active development.** CAN ID validation across 5 test vehicles in progress. Detailed hardware BOM and wiring guide being published as testing confirms each vehicle.
 
 ---
 
