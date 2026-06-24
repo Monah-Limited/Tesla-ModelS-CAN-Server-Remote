@@ -29,13 +29,11 @@ data_samples = {}
 running = True
 
 def handler(sig, frame):
-    global running
     running = False
 
 signal.signal(signal.SIGINT, handler)
 
 def main():
-    global running
     print("=" * 60)
     print("🚗 Tesla Model S CAN Sniffer")
     print("=" * 60)

@@ -1,5 +1,4 @@
-flask==3.1.1
-flask-cors==5.0.1
-python-can==4.6.0
-psutil==7.0.0
-requests==2.32.3
+flask>=3.0
+flask-cors>=4.0
+python-can>=4.0
+requests>=2.31
