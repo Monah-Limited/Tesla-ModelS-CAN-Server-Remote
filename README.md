@@ -21,7 +21,7 @@
 > 📅 Estimated completion: ~3 months. Hardware BOM and wiring guide coming soon.
 
 <p align="center">
-  <img src="assets/app_ui.png" alt="App Preview" width="600">
+  <img src="assets/app_preview_01.png" alt="App Preview" width="600">
 </p>
 
 > **[ English ](#english)** · **[ 简体中文 ](#简体中文)** · **[ 日本語 ](#日本語)** · **[ 한국어 ](#한국어)**
